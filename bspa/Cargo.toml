@@ -1,0 +1,28 @@
+[package]
+name = "bspa"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+beam.workspace = true
+itertools = { workspace = true, default-features = false }
+rayon = { workspace = true, optional = true }
+rustc-hash.workspace = true
+
+[dev-dependencies]
+divan.workspace = true
+image = "0.25.6"
+rand = "0.9.1"
+
+[features]
+default = []
+rayon = ["dep:rayon", "beam/rayon", "image/rayon"]
+test-utils = []
+
+[[bench]]
+name = "atlas"
+harness = false
+
+[[bench]]
+name = "param"
+harness = false
