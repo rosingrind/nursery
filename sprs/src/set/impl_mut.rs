@@ -1,54 +1,62 @@
 use std::iter::FusedIterator;
 
-use super::{Key, SetRef, SparSet};
+use num_traits::{AsPrimitive, Unsigned};
 
-pub trait SetMut {
+use super::{SetRef, SparSet};
+
+pub trait SetMut<K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
     fn clear(&mut self);
 
     /// Retain entries specified by predicate
     fn retain<F>(&mut self, f: F)
     where
-        F: Fn(&Key) -> bool;
+        F: Fn(&K) -> bool;
 
     /// Lazy recall operation
     ///
     /// Removes entries specified by predicate and returns
     /// an iterator over deleted values
-    fn recall<F>(&mut self, f: F) -> Recall<'_, F>
+    fn recall<F>(&mut self, f: F) -> Recall<'_, K, F>
     where
-        F: Fn(&Key) -> bool;
+        F: Fn(&K) -> bool;
 
     /// Insert entry and return operation's result
-    fn insert_one(&mut self, k: Key) -> bool;
+    fn insert_one(&mut self, k: K) -> bool;
 
     /// Batched insert operation
     ///
     /// Returns existing's owned value vec
-    fn insert_all(&mut self, k: Vec<Key>);
+    fn insert_all(&mut self, k: Vec<K>);
 
     /// Delete entry and return operation's result
-    fn delete_one(&mut self, k: Key) -> bool;
+    fn delete_one(&mut self, k: K) -> bool;
 
     /// Batched delete operation
-    fn delete_all(&mut self, k: Vec<Key>);
+    fn delete_all(&mut self, k: Vec<K>);
 }
 
-impl SetMut for SparSet {
+impl<K> SetMut<K> for SparSet<K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
     #[cfg_attr(feature = "inline-more", inline)]
     fn clear(&mut self) {
         #[cfg(feature = "bitmask")]
         {
             self.mask = KeySliceMask::ZERO;
         }
-        self.len = 0;
+        self.len = K::zero();
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
     fn retain<F>(&mut self, f: F)
     where
-        F: Fn(&Key) -> bool,
+        F: Fn(&K) -> bool,
     {
-        let mut vec = Vec::with_capacity(self.len() as usize);
+        let mut vec = Vec::with_capacity(self.len().as_());
         for item in self.iter() {
             if !f(item) {
                 vec.push(*item);
@@ -58,9 +66,9 @@ impl SetMut for SparSet {
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn recall<F>(&mut self, f: F) -> Recall<'_, F>
+    fn recall<F>(&mut self, f: F) -> Recall<'_, K, F>
     where
-        F: Fn(&Key) -> bool,
+        F: Fn(&K) -> bool,
     {
         Recall {
             f,
@@ -72,30 +80,31 @@ impl SetMut for SparSet {
         }
     }
 
-    fn insert_one(&mut self, k: Key) -> bool {
+    fn insert_one(&mut self, k: K) -> bool {
         if self.contains(k) {
             return false;
         }
 
         #[cfg(feature = "bitmask")]
         {
-            self.mask.set(k as usize, true);
+            self.mask.set(k.as_(), true);
         }
-        self.sparse[k as usize] = self.len;
-        self.dense[self.len as usize] = k;
-        self.len += 1;
+        self.sparse[k.as_()] = self.len;
+        self.dense[self.len.as_()] = k;
+        self.len = self.len.add(K::one());
+        // self.len += 1;
 
         true
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn insert_all(&mut self, k: Vec<Key>) {
+    fn insert_all(&mut self, k: Vec<K>) {
         let s = self.filter_all_excl(&k);
 
         self.insert_all_seq_uncheck(&s);
     }
 
-    fn delete_one(&mut self, k: Key) -> bool {
+    fn delete_one(&mut self, k: K) -> bool {
         if !self.contains(k) {
             return false;
         }
@@ -106,23 +115,29 @@ impl SetMut for SparSet {
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn delete_all(&mut self, k: Vec<Key>) {
+    fn delete_all(&mut self, k: Vec<K>) {
         let s = self.filter_all_incl(&k);
 
         self.delete_all_seq_uncheck(&s, |_, _| {});
     }
 }
 
-pub(crate) struct RawRecall<'a> {
-    pub iter: std::vec::IntoIter<Key>,
-    pub table: &'a mut SparSet,
+pub(crate) struct RawRecall<'a, K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
+    pub iter: std::vec::IntoIter<K>,
+    pub table: &'a mut SparSet<K>,
 }
 
-impl RawRecall<'_> {
+impl<K> RawRecall<'_, K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
     #[cfg_attr(feature = "inline-more", inline)]
-    pub(crate) fn next<F>(&mut self, f: F) -> Option<Key>
+    pub(crate) fn next<F>(&mut self, f: F) -> Option<K>
     where
-        F: Fn(&Key) -> bool,
+        F: Fn(&K) -> bool,
     {
         for item in self.iter.by_ref() {
             if f(&item) {
@@ -135,19 +150,21 @@ impl RawRecall<'_> {
     }
 }
 
-pub struct Recall<'a, F>
+pub struct Recall<'a, K, F>
 where
-    F: Fn(&Key) -> bool,
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+    F: Fn(&K) -> bool,
 {
     f: F,
-    inner: RawRecall<'a>,
+    inner: RawRecall<'a, K>,
 }
 
-impl<F> Iterator for Recall<'_, F>
+impl<K, F> Iterator for Recall<'_, K, F>
 where
-    F: Fn(&Key) -> bool,
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+    F: Fn(&K) -> bool,
 {
-    type Item = Key;
+    type Item = K;
 
     #[cfg_attr(feature = "inline-more", inline)]
     fn next(&mut self) -> Option<Self::Item> {
@@ -160,6 +177,16 @@ where
     }
 }
 
-impl<F> FusedIterator for Recall<'_, F> where F: Fn(&Key) -> bool {}
+impl<K, F> FusedIterator for Recall<'_, K, F>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+    F: Fn(&K) -> bool,
+{
+}
 
-impl<F> ExactSizeIterator for Recall<'_, F> where F: Fn(&Key) -> bool {}
+impl<K, F> ExactSizeIterator for Recall<'_, K, F>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+    F: Fn(&K) -> bool,
+{
+}

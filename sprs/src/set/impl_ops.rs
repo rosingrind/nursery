@@ -1,9 +1,17 @@
 use core::fmt;
-use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Sub, SubAssign};
+use std::{
+    fmt::Debug,
+    ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Sub, SubAssign},
+};
 
-use super::{Key, SetMut, SetRef, SparSet};
+use num_traits::{AsPrimitive, Unsigned};
 
-impl PartialEq for SparSet {
+use super::{SetMut, SetRef, SparSet};
+
+impl<K> PartialEq for SparSet<K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
     fn eq(&self, other: &Self) -> bool {
         if self.len() != other.len() {
             return false;
@@ -13,32 +21,44 @@ impl PartialEq for SparSet {
     }
 }
 
-impl Eq for SparSet {}
+impl<K> Eq for SparSet<K> where K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd {}
 
-impl fmt::Debug for SparSet {
+impl<K> fmt::Debug for SparSet<K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd + Debug,
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_set().entries(self.iter()).finish()
     }
 }
 
-impl FromIterator<Key> for SparSet {
+impl<K> FromIterator<K> for SparSet<K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
     #[cfg_attr(feature = "inline-more", inline)]
-    fn from_iter<I: IntoIterator<Item = Key>>(iter: I) -> Self {
+    fn from_iter<I: IntoIterator<Item = K>>(iter: I) -> Self {
         let mut set = Self::new();
         set.extend(iter);
         set
     }
 }
 
-impl<const N: usize> From<[Key; N]> for SparSet {
-    fn from(arr: [Key; N]) -> Self {
+impl<K, const N: usize> From<[K; N]> for SparSet<K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
+    fn from(arr: [K; N]) -> Self {
         arr.into_iter().collect()
     }
 }
 
-impl Extend<Key> for SparSet {
+impl<K> Extend<K> for SparSet<K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
     #[cfg_attr(feature = "inline-more", inline)]
-    fn extend<I: IntoIterator<Item = Key>>(&mut self, iter: I) {
+    fn extend<I: IntoIterator<Item = K>>(&mut self, iter: I) {
         iter.into_iter().for_each(|k| {
             self.insert_one(k);
         });
@@ -46,26 +66,32 @@ impl Extend<Key> for SparSet {
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(feature = "nightly")]
-    fn extend_one(&mut self, k: Key) {
+    fn extend_one(&mut self, k: K) {
         self.insert_one(k);
     }
 }
 
-impl<'a> Extend<&'a Key> for SparSet {
+impl<'a, K> Extend<&'a K> for SparSet<K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
     #[cfg_attr(feature = "inline-more", inline)]
-    fn extend<I: IntoIterator<Item = &'a Key>>(&mut self, iter: I) {
+    fn extend<I: IntoIterator<Item = &'a K>>(&mut self, iter: I) {
         self.extend(iter.into_iter().copied());
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(feature = "nightly")]
-    fn extend_one(&mut self, k: &'a Key) {
+    fn extend_one(&mut self, k: &'a K) {
         self.insert_one(*k);
     }
 }
 
-impl BitOr<&SparSet> for &SparSet {
-    type Output = SparSet;
+impl<K> BitOr<&SparSet<K>> for &SparSet<K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
+    type Output = SparSet<K>;
 
     /// Returns the union of `self` and `rhs` as a new `SparSet`.
     ///
@@ -87,13 +113,16 @@ impl BitOr<&SparSet> for &SparSet {
     /// }
     /// assert_eq!(i, expected.len());
     /// ```
-    fn bitor(self, rhs: &SparSet) -> SparSet {
+    fn bitor(self, rhs: &SparSet<K>) -> SparSet<K> {
         self.union(rhs).cloned().collect()
     }
 }
 
-impl BitAnd<&SparSet> for &SparSet {
-    type Output = SparSet;
+impl<K> BitAnd<&SparSet<K>> for &SparSet<K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
+    type Output = SparSet<K>;
 
     /// Returns the intersection of `self` and `rhs` as a new `SparSet`.
     ///
@@ -115,13 +144,16 @@ impl BitAnd<&SparSet> for &SparSet {
     /// }
     /// assert_eq!(i, expected.len());
     /// ```
-    fn bitand(self, rhs: &SparSet) -> SparSet {
+    fn bitand(self, rhs: &SparSet<K>) -> SparSet<K> {
         self.intersection(rhs).cloned().collect()
     }
 }
 
-impl BitXor<&SparSet> for &SparSet {
-    type Output = SparSet;
+impl<K> BitXor<&SparSet<K>> for &SparSet<K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
+    type Output = SparSet<K>;
 
     /// Returns the symmetric difference of `self` and `rhs` as a new `SparSet`.
     ///
@@ -143,13 +175,16 @@ impl BitXor<&SparSet> for &SparSet {
     /// }
     /// assert_eq!(i, expected.len());
     /// ```
-    fn bitxor(self, rhs: &SparSet) -> SparSet {
+    fn bitxor(self, rhs: &SparSet<K>) -> SparSet<K> {
         self.symmetric_difference(rhs).cloned().collect()
     }
 }
 
-impl Sub<&SparSet> for &SparSet {
-    type Output = SparSet;
+impl<K> Sub<&SparSet<K>> for &SparSet<K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
+    type Output = SparSet<K>;
 
     /// Returns the difference of `self` and `rhs` as a new `SparSet`.
     ///
@@ -171,12 +206,15 @@ impl Sub<&SparSet> for &SparSet {
     /// }
     /// assert_eq!(i, expected.len());
     /// ```
-    fn sub(self, rhs: &SparSet) -> SparSet {
+    fn sub(self, rhs: &SparSet<K>) -> SparSet<K> {
         self.difference(rhs).cloned().collect()
     }
 }
 
-impl BitOrAssign<&SparSet> for SparSet {
+impl<K> BitOrAssign<&SparSet<K>> for SparSet<K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
     /// Modifies this set to contain the union of `self` and `rhs`.
     ///
     /// # Examples
@@ -197,7 +235,7 @@ impl BitOrAssign<&SparSet> for SparSet {
     /// }
     /// assert_eq!(i, expected.len());
     /// ```
-    fn bitor_assign(&mut self, rhs: &SparSet) {
+    fn bitor_assign(&mut self, rhs: &SparSet<K>) {
         for item in rhs.iter().copied() {
             if !self.contains(item) {
                 self.insert_one(item);
@@ -206,7 +244,10 @@ impl BitOrAssign<&SparSet> for SparSet {
     }
 }
 
-impl BitAndAssign<&SparSet> for SparSet {
+impl<K> BitAndAssign<&SparSet<K>> for SparSet<K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
     /// Modifies this set to contain the intersection of `self` and `rhs`.
     ///
     /// # Examples
@@ -227,12 +268,15 @@ impl BitAndAssign<&SparSet> for SparSet {
     /// }
     /// assert_eq!(i, expected.len());
     /// ```
-    fn bitand_assign(&mut self, rhs: &SparSet) {
+    fn bitand_assign(&mut self, rhs: &SparSet<K>) {
         self.retain(|&item| rhs.contains(item));
     }
 }
 
-impl BitXorAssign<&SparSet> for SparSet {
+impl<K> BitXorAssign<&SparSet<K>> for SparSet<K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
     /// Modifies this set to contain the symmetric difference of `self` and `rhs`.
     ///
     /// # Examples
@@ -253,7 +297,7 @@ impl BitXorAssign<&SparSet> for SparSet {
     /// }
     /// assert_eq!(i, expected.len());
     /// ```
-    fn bitxor_assign(&mut self, rhs: &SparSet) {
+    fn bitxor_assign(&mut self, rhs: &SparSet<K>) {
         for item in rhs.iter().copied() {
             if !self.contains(item) {
                 self.insert_one(item);
@@ -264,7 +308,10 @@ impl BitXorAssign<&SparSet> for SparSet {
     }
 }
 
-impl SubAssign<&SparSet> for SparSet {
+impl<K> SubAssign<&SparSet<K>> for SparSet<K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
     /// Modifies this set to contain the difference of `self` and `rhs`.
     ///
     /// # Examples
@@ -285,7 +332,7 @@ impl SubAssign<&SparSet> for SparSet {
     /// }
     /// assert_eq!(i, expected.len());
     /// ```
-    fn sub_assign(&mut self, rhs: &SparSet) {
+    fn sub_assign(&mut self, rhs: &SparSet<K>) {
         if rhs.len() < self.len() {
             for item in rhs.iter().copied() {
                 self.delete_one(item);

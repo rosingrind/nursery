@@ -5,7 +5,8 @@ edition = "2024"
 
 [dependencies]
 bitcode = { version = "0.6", optional = true }
-bitvec = { version = "1.0.1", default-features = false }
+bitvec = { version = "1.0.1" }
+num-traits = "0.2.19"
 rayon = { workspace = true, optional = true }
 
 [dev-dependencies]

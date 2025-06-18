@@ -10,7 +10,7 @@ use rayon::prelude::*;
 #[divan::bench(threads = [0, 1])]
 fn contains(bencher: Bencher) {
     bencher.bench(move || {
-        let mut set = black_box(SparSet::new());
+        let mut set = black_box(SparSet::<Key>::new());
         black_box(&mut set).insert_one(black_box(5));
         black_box(&mut set).contains(black_box(5));
         black_box(&mut set).contains(black_box(0));

@@ -1,46 +1,51 @@
 use core::fmt;
 use std::{
+    fmt::Debug,
     iter::{Chain, FusedIterator},
     slice::Iter,
 };
 
+use num_traits::{AsPrimitive, Unsigned};
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;
 
-use super::{Key, SparSet};
+use super::SparSet;
 
-pub(crate) type SetIter<'a> = Iter<'a, Key>;
+pub(crate) type SetIter<'a, K> = Iter<'a, K>;
 
-pub trait SetRef {
+pub trait SetRef<K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
     /// Returns raw dense indexes slice
-    fn as_slice(&self) -> &[Key];
+    fn as_slice(&self) -> &[K];
 
-    fn iter(&self) -> SetIter;
+    fn iter(&self) -> SetIter<K>;
 
     #[cfg(not(feature = "rayon"))]
     /// A ∩ B
-    fn intersection<'a>(&'a self, other: &'a Self) -> Intersection<'a>;
+    fn intersection<'a>(&'a self, other: &'a Self) -> Intersection<'a, K>;
     #[cfg(feature = "rayon")]
     /// A ∩ B (parallel)
     fn intersection(&self, other: &Self) -> impl SetRef;
 
     #[cfg(not(feature = "rayon"))]
     /// A ∪ B
-    fn union<'a>(&'a self, other: &'a Self) -> Union<'a>;
+    fn union<'a>(&'a self, other: &'a Self) -> Union<'a, K>;
     #[cfg(feature = "rayon")]
     /// A ∪ B (parallel)
     fn union(&self, other: &Self) -> impl SetRef;
 
     #[cfg(not(feature = "rayon"))]
     /// A − B
-    fn difference<'a>(&'a self, other: &'a Self) -> Difference<'a>;
+    fn difference<'a>(&'a self, other: &'a Self) -> Difference<'a, K>;
     #[cfg(feature = "rayon")]
     /// A − B (parallel)
     fn difference(&self, other: &Self) -> impl SetRef;
 
     #[cfg(not(feature = "rayon"))]
     /// A − B
-    fn symmetric_difference<'a>(&'a self, other: &'a Self) -> SymmetricDifference<'a>;
+    fn symmetric_difference<'a>(&'a self, other: &'a Self) -> SymmetricDifference<'a, K>;
 
     fn is_disjoint(&self, other: &Self) -> bool;
 
@@ -49,20 +54,23 @@ pub trait SetRef {
     fn is_superset(&self, other: &Self) -> bool;
 }
 
-impl SetRef for SparSet {
+impl<K> SetRef<K> for SparSet<K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
     #[cfg_attr(feature = "inline-more", inline)]
-    fn as_slice(&self) -> &[Key] {
-        &self.dense[..self.len as usize]
+    fn as_slice(&self) -> &[K] {
+        &self.dense[..self.len.as_()]
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn iter(&self) -> SetIter {
-        self.dense[..self.len as usize].iter()
+    fn iter(&self) -> SetIter<K> {
+        self.dense[..self.len.as_()].iter()
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
-    fn intersection<'a>(&'a self, other: &'a Self) -> Intersection<'a> {
+    fn intersection<'a>(&'a self, other: &'a Self) -> Intersection<'a, K> {
         let (smaller, larger) = if self.len() <= other.len() {
             (self, other)
         } else {
@@ -81,7 +89,7 @@ impl SetRef for SparSet {
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
-    fn union<'a>(&'a self, other: &'a Self) -> Union<'a> {
+    fn union<'a>(&'a self, other: &'a Self) -> Union<'a, K> {
         let (smaller, larger) = if self.len() <= other.len() {
             (self, other)
         } else {
@@ -100,7 +108,7 @@ impl SetRef for SparSet {
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
-    fn difference<'a>(&'a self, other: &'a Self) -> Difference<'a> {
+    fn difference<'a>(&'a self, other: &'a Self) -> Difference<'a, K> {
         Difference {
             iter: self.iter(),
             other,
@@ -115,7 +123,7 @@ impl SetRef for SparSet {
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
-    fn symmetric_difference<'a>(&'a self, other: &'a Self) -> SymmetricDifference<'a> {
+    fn symmetric_difference<'a>(&'a self, other: &'a Self) -> SymmetricDifference<'a, K> {
         SymmetricDifference {
             iter: self.difference(other).chain(other.difference(self)),
         }
@@ -145,25 +153,40 @@ impl SetRef for SparSet {
     }
 }
 
-pub struct Intersection<'a> {
-    iter: Iter<'a, Key>,
-    other: &'a SparSet,
+pub struct Intersection<'a, K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
+    iter: Iter<'a, K>,
+    other: &'a SparSet<K>,
 }
 
-pub struct Union<'a> {
-    iter: Chain<Iter<'a, Key>, Difference<'a>>,
+pub struct Union<'a, K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
+    iter: Chain<Iter<'a, K>, Difference<'a, K>>,
 }
 
-pub struct Difference<'a> {
-    iter: Iter<'a, Key>,
-    other: &'a SparSet,
+pub struct Difference<'a, K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
+    iter: Iter<'a, K>,
+    other: &'a SparSet<K>,
 }
 
-pub struct SymmetricDifference<'a> {
-    iter: Chain<Difference<'a>, Difference<'a>>,
+pub struct SymmetricDifference<'a, K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
+    iter: Chain<Difference<'a, K>, Difference<'a, K>>,
 }
 
-impl Clone for Intersection<'_> {
+impl<K> Clone for Intersection<'_, K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
     #[cfg_attr(feature = "inline-more", inline)]
     fn clone(&self) -> Self {
         Intersection {
@@ -173,11 +196,14 @@ impl Clone for Intersection<'_> {
     }
 }
 
-impl<'a> Iterator for Intersection<'a> {
-    type Item = &'a Key;
+impl<'a, K> Iterator for Intersection<'a, K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
+    type Item = &'a K;
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn next(&mut self) -> Option<&'a Key> {
+    fn next(&mut self) -> Option<&'a K> {
         loop {
             let elt = self.iter.next()?;
             if self.other.contains(*elt) {
@@ -208,17 +234,29 @@ impl<'a> Iterator for Intersection<'a> {
     }
 }
 
-impl fmt::Debug for Intersection<'_> {
+impl<K> fmt::Debug for Intersection<'_, K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd + Debug,
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(self.clone()).finish()
     }
 }
 
-impl FusedIterator for Intersection<'_> {}
+impl<K> FusedIterator for Intersection<'_, K> where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd
+{
+}
 
-impl ExactSizeIterator for Intersection<'_> {}
+impl<K> ExactSizeIterator for Intersection<'_, K> where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd
+{
+}
 
-impl Clone for Union<'_> {
+impl<K> Clone for Union<'_, K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
     #[cfg_attr(feature = "inline-more", inline)]
     fn clone(&self) -> Self {
         Union {
@@ -227,11 +265,14 @@ impl Clone for Union<'_> {
     }
 }
 
-impl<'a> Iterator for Union<'a> {
-    type Item = &'a Key;
+impl<'a, K> Iterator for Union<'a, K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
+    type Item = &'a K;
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn next(&mut self) -> Option<&'a Key> {
+    fn next(&mut self) -> Option<&'a K> {
         self.iter.next()
     }
 
@@ -250,17 +291,24 @@ impl<'a> Iterator for Union<'a> {
     }
 }
 
-impl fmt::Debug for Union<'_> {
+impl<K> fmt::Debug for Union<'_, K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd + Debug,
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(self.clone()).finish()
     }
 }
 
-impl FusedIterator for Union<'_> {}
+impl<K> FusedIterator for Union<'_, K> where K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd {}
 
-impl ExactSizeIterator for Union<'_> {}
+impl<K> ExactSizeIterator for Union<'_, K> where K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd
+{}
 
-impl Clone for Difference<'_> {
+impl<K> Clone for Difference<'_, K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
     #[cfg_attr(feature = "inline-more", inline)]
     fn clone(&self) -> Self {
         Difference {
@@ -270,11 +318,14 @@ impl Clone for Difference<'_> {
     }
 }
 
-impl<'a> Iterator for Difference<'a> {
-    type Item = &'a Key;
+impl<'a, K> Iterator for Difference<'a, K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
+    type Item = &'a K;
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn next(&mut self) -> Option<&'a Key> {
+    fn next(&mut self) -> Option<&'a K> {
         loop {
             let elt = self.iter.next()?;
             if !self.other.contains(*elt) {
@@ -286,7 +337,7 @@ impl<'a> Iterator for Difference<'a> {
     #[cfg_attr(feature = "inline-more", inline)]
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (lower, upper) = self.iter.size_hint();
-        (lower.saturating_sub(self.other.len() as usize), upper)
+        (lower.saturating_sub(self.other.len().as_()), upper)
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
@@ -305,17 +356,29 @@ impl<'a> Iterator for Difference<'a> {
     }
 }
 
-impl fmt::Debug for Difference<'_> {
+impl<K> fmt::Debug for Difference<'_, K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd + Debug,
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(self.clone()).finish()
     }
 }
 
-impl FusedIterator for Difference<'_> {}
+impl<K> FusedIterator for Difference<'_, K> where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd
+{
+}
 
-impl ExactSizeIterator for Difference<'_> {}
+impl<K> ExactSizeIterator for Difference<'_, K> where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd
+{
+}
 
-impl Clone for SymmetricDifference<'_> {
+impl<K> Clone for SymmetricDifference<'_, K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
     #[cfg_attr(feature = "inline-more", inline)]
     fn clone(&self) -> Self {
         SymmetricDifference {
@@ -324,11 +387,14 @@ impl Clone for SymmetricDifference<'_> {
     }
 }
 
-impl<'a> Iterator for SymmetricDifference<'a> {
-    type Item = &'a Key;
+impl<'a, K> Iterator for SymmetricDifference<'a, K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
+    type Item = &'a K;
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn next(&mut self) -> Option<&'a Key> {
+    fn next(&mut self) -> Option<&'a K> {
         self.iter.next()
     }
 
@@ -347,12 +413,21 @@ impl<'a> Iterator for SymmetricDifference<'a> {
     }
 }
 
-impl fmt::Debug for SymmetricDifference<'_> {
+impl<K> fmt::Debug for SymmetricDifference<'_, K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd + Debug,
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(self.clone()).finish()
     }
 }
 
-impl FusedIterator for SymmetricDifference<'_> {}
+impl<K> FusedIterator for SymmetricDifference<'_, K> where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd
+{
+}
 
-impl ExactSizeIterator for SymmetricDifference<'_> {}
+impl<K> ExactSizeIterator for SymmetricDifference<'_, K> where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd
+{
+}

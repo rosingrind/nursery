@@ -10,7 +10,7 @@ use rayon::prelude::*;
 #[divan::bench(threads = [0, 1])]
 fn insert_one(bencher: Bencher) {
     bencher.bench(|| {
-        let mut set = black_box(SparSet::new());
+        let mut set = black_box(SparSet::<Key>::new());
         black_box(&mut set).insert_one(black_box(5));
         black_box(&mut set).insert_one(black_box(5));
     });
@@ -30,7 +30,7 @@ fn insert_all(bencher: Bencher) {
 #[divan::bench(threads = [0, 1])]
 fn delete_one(bencher: Bencher) {
     bencher.bench(|| {
-        let mut set = black_box(SparSet::new());
+        let mut set = black_box(SparSet::<Key>::new());
         black_box(&mut set).insert_one(black_box(5));
         black_box(&mut set).delete_one(black_box(5));
         black_box(&mut set).delete_one(black_box(5));
