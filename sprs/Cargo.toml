@@ -1,0 +1,49 @@
+[package]
+name = "sprs"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bitcode = { version = "0.6", optional = true }
+bitvec = { version = "1.0.1", default-features = false }
+rayon = { workspace = true, optional = true }
+
+[dev-dependencies]
+divan.workspace = true
+rand.workspace = true
+sparsey = { git = "https://github.com/rosingrind/sparsey.git", features = [
+    "bitcode",
+    "parallel",
+] }
+
+[features]
+default = []
+bitcode = ["dep:bitcode"]
+bitmask = []
+inline-more = []
+nightly = []
+rayon = ["dep:rayon"]
+
+[[bench]]
+name = "ext_mut"
+harness = false
+
+[[bench]]
+name = "map_mut"
+harness = false
+
+[[bench]]
+name = "ext_ref"
+harness = false
+
+[[bench]]
+name = "map_ref"
+harness = false
+
+[[bench]]
+name = "set_mut"
+harness = false
+
+[[bench]]
+name = "set_ref"
+harness = false
