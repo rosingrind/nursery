@@ -1,10 +1,12 @@
-use crate::Key;
+use crate::{KEY_MAX, Key};
 
 use super::*;
 
+type MockSet = SparSet<Key, KEY_MAX>;
+
 #[test]
 fn regular_ops() {
-    let mut set = SparSet::new();
+    let mut set = MockSet::new();
 
     assert_eq!(set.dense[..set.len as usize], []);
     assert_eq!(set.as_slice(), &[]);
@@ -68,8 +70,8 @@ fn regular_ops() {
 
 #[test]
 fn compare_ops() {
-    let mut a = SparSet::<Key>::new();
-    let mut b = SparSet::new();
+    let mut a = MockSet::new();
+    let mut b = MockSet::new();
 
     a.insert_all(vec![5, 2]);
     b.insert_all(vec![5, 3]);
@@ -131,7 +133,7 @@ fn compare_ops() {
 
 #[test]
 fn batched_ops() {
-    let mut set = SparSet::<Key>::new();
+    let mut set = MockSet::new();
 
     set.insert_all(vec![4, 5, 6, 7]);
     assert_eq!(set.as_slice(), [4, 5, 6, 7]);
@@ -157,7 +159,7 @@ fn batched_ops() {
 
 #[test]
 fn test_zero_capacities() {
-    type HS = SparSet<Key>;
+    type HS = MockSet;
 
     let s = HS::new();
     assert_eq!(s.len(), 0);
@@ -175,8 +177,8 @@ fn test_zero_capacities() {
 
 #[test]
 fn test_disjoint() {
-    let mut xs = SparSet::<Key>::new();
-    let mut ys = SparSet::new();
+    let mut xs = MockSet::new();
+    let mut ys = MockSet::new();
     assert!(xs.is_disjoint(&ys));
     assert!(ys.is_disjoint(&xs));
     assert!(xs.insert_one(5));
@@ -196,13 +198,13 @@ fn test_disjoint() {
 
 #[test]
 fn test_subset_and_superset() {
-    let mut a = SparSet::<Key>::new();
+    let mut a = MockSet::new();
     assert!(a.insert_one(0));
     assert!(a.insert_one(5));
     assert!(a.insert_one(11));
     assert!(a.insert_one(7));
 
-    let mut b = SparSet::new();
+    let mut b = MockSet::new();
     assert!(b.insert_one(0));
     assert!(b.insert_one(7));
     assert!(b.insert_one(19));
@@ -225,7 +227,7 @@ fn test_subset_and_superset() {
 
 #[test]
 fn test_iterate() {
-    let mut a = SparSet::<Key>::new();
+    let mut a = MockSet::new();
     for i in 0..32 {
         assert!(a.insert_one(i));
     }
@@ -238,8 +240,8 @@ fn test_iterate() {
 
 #[test]
 fn test_intersection() {
-    let mut a = SparSet::<Key>::new();
-    let mut b = SparSet::new();
+    let mut a = MockSet::new();
+    let mut b = MockSet::new();
 
     assert!(a.insert_one(11));
     assert!(a.insert_one(1));
@@ -265,8 +267,8 @@ fn test_intersection() {
 
 #[test]
 fn test_difference() {
-    let mut a = SparSet::<Key>::new();
-    let mut b = SparSet::new();
+    let mut a = MockSet::new();
+    let mut b = MockSet::new();
 
     assert!(a.insert_one(1));
     assert!(a.insert_one(3));
@@ -288,8 +290,8 @@ fn test_difference() {
 
 #[test]
 fn test_symmetric_difference() {
-    let mut a = SparSet::<Key>::new();
-    let mut b = SparSet::new();
+    let mut a = MockSet::new();
+    let mut b = MockSet::new();
 
     assert!(a.insert_one(1));
     assert!(a.insert_one(3));
@@ -313,8 +315,8 @@ fn test_symmetric_difference() {
 
 #[test]
 fn test_union() {
-    let mut a = SparSet::<Key>::new();
-    let mut b = SparSet::new();
+    let mut a = MockSet::new();
+    let mut b = MockSet::new();
 
     assert!(a.insert_one(1));
     assert!(a.insert_one(3));
@@ -344,7 +346,7 @@ fn test_union() {
 fn test_from_iter() {
     let xs = [1, 2, 2, 3, 4, 5, 6, 7, 8, 9];
 
-    let set: SparSet<Key> = xs.iter().copied().collect();
+    let set: MockSet = xs.iter().copied().collect();
 
     for &x in &xs {
         assert!(set.contains(x));
@@ -356,7 +358,7 @@ fn test_from_iter() {
 #[test]
 fn test_move_iter() {
     let hs = {
-        let mut hs = SparSet::new();
+        let mut hs = MockSet::new();
 
         hs.insert_one(1);
         hs.insert_one(2);
@@ -372,13 +374,13 @@ fn test_move_iter() {
 fn test_eq() {
     // These constants once happened to expose a bug in insert_one().
     // I'm keeping them around to prevent a regression.
-    let mut s1 = SparSet::<Key>::new();
+    let mut s1 = MockSet::new();
 
     s1.insert_one(1);
     s1.insert_one(2);
     s1.insert_one(3);
 
-    let mut s2 = SparSet::new();
+    let mut s2 = MockSet::new();
 
     s2.insert_one(1);
     s2.insert_one(2);
@@ -392,8 +394,8 @@ fn test_eq() {
 
 #[test]
 fn test_show() {
-    let mut set = SparSet::<Key>::new();
-    let empty = SparSet::<Key>::new();
+    let mut set = MockSet::new();
+    let empty = MockSet::new();
 
     set.insert_one(1);
     set.insert_one(2);
@@ -407,7 +409,7 @@ fn test_show() {
 #[test]
 #[allow(clippy::needless_borrow)]
 fn test_extend_ref() {
-    let mut a = SparSet::<Key>::new();
+    let mut a = MockSet::new();
     a.insert_one(1);
 
     a.extend([2, 3, 4]);
@@ -418,7 +420,7 @@ fn test_extend_ref() {
     assert!(a.contains(3));
     assert!(a.contains(4));
 
-    let mut b = SparSet::new();
+    let mut b = MockSet::new();
     b.insert_one(5);
     b.insert_one(6);
 
@@ -436,7 +438,7 @@ fn test_extend_ref() {
 #[test]
 fn test_retain() {
     let xs = [1, 2, 3, 4, 5, 6];
-    let mut set: SparSet<Key> = xs.iter().copied().collect();
+    let mut set: MockSet = xs.iter().copied().collect();
     set.retain(|&k| k % 2 == 0);
     assert_eq!(set.len(), 3);
     assert!(set.contains(2));
@@ -447,7 +449,7 @@ fn test_retain() {
 #[test]
 fn test_recall() {
     {
-        let mut set: SparSet<Key> = (0..8).collect();
+        let mut set: MockSet = (0..8).collect();
         let drained = set.recall(|&k| k % 2 == 0);
         let mut out = drained.collect::<Vec<_>>();
         out.sort_unstable();
@@ -456,7 +458,7 @@ fn test_recall() {
         assert_eq!(set.len(), 4);
     }
     {
-        let mut set: SparSet<Key> = (0..8).collect();
+        let mut set: MockSet = (0..8).collect();
         set.recall(|&k| k % 2 == 0).for_each(drop);
         assert_eq!(set.len(), 4, "Removes non-matching items on drop");
     }
@@ -464,7 +466,7 @@ fn test_recall() {
 
 #[test]
 fn rehash_in_place() {
-    let mut set = SparSet::<Key>::new();
+    let mut set = MockSet::new();
 
     for i in 0..224 {
         set.insert_one(i);
@@ -486,12 +488,12 @@ fn rehash_in_place() {
 fn collect() {
     // At the time of writing, this hits the ZST case in from_base_index
     // (and without the `map`, it does not).
-    let mut _set: SparSet<Key> = (0..3).collect();
+    let mut _set: MockSet = (0..3).collect();
 }
 
 #[test]
 fn duplicate_insert_one() {
-    let mut set = SparSet::<Key>::new();
+    let mut set = MockSet::new();
     set.insert_one(1);
     set.insert_one(1);
     assert!([1].iter().eq(set.iter()));

@@ -4,15 +4,15 @@ use num_traits::{AsPrimitive, Unsigned};
 
 use crate::set::{SetMut, SparSet};
 
-pub(super) struct RawRecall<'a, K>
+pub(super) struct RawRecall<'a, K, const N: usize>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
     pub(super) iter: std::vec::IntoIter<K>,
-    pub(super) table: &'a mut SparSet<K>,
+    pub(super) table: &'a mut SparSet<K, N>,
 }
 
-impl<K> RawRecall<'_, K>
+impl<K, const N: usize> RawRecall<'_, K, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -32,16 +32,16 @@ where
     }
 }
 
-pub struct Recall<'a, K, F>
+pub struct Recall<'a, K, const N: usize, F>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     F: Fn(&K) -> bool,
 {
     pub(super) f: F,
-    pub(super) inner: RawRecall<'a, K>,
+    pub(super) inner: RawRecall<'a, K, N>,
 }
 
-impl<K, F> Iterator for Recall<'_, K, F>
+impl<K, const N: usize, F> Iterator for Recall<'_, K, N, F>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     F: Fn(&K) -> bool,
@@ -59,14 +59,14 @@ where
     }
 }
 
-impl<K, F> iter::FusedIterator for Recall<'_, K, F>
+impl<K, const N: usize, F> iter::FusedIterator for Recall<'_, K, N, F>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     F: Fn(&K) -> bool,
 {
 }
 
-impl<K, F> iter::ExactSizeIterator for Recall<'_, K, F>
+impl<K, const N: usize, F> iter::ExactSizeIterator for Recall<'_, K, N, F>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     F: Fn(&K) -> bool,

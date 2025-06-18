@@ -1,5 +1,5 @@
 use sprs::{
-    Key,
+    KEY_MAX, Key,
     set::{SetMut, SetRef, SparSet},
 };
 
@@ -10,7 +10,7 @@ const FULL_RANGE: std::ops::Range<Key> = 0..Key::MAX;
 
 #[test]
 fn insert_all() {
-    let mut set = SparSet::new();
+    let mut set = SparSet::<Key, KEY_MAX>::new();
 
     set.insert_all(FULL_RANGE.collect::<Vec<_>>());
     assert_eq!(set.as_slice(), &FULL_RANGE.collect::<Vec<_>>(),);
@@ -23,7 +23,7 @@ fn insert_all() {
 
 #[test]
 fn delete_all() {
-    let mut set = SparSet::new();
+    let mut set = SparSet::<Key, KEY_MAX>::new();
 
     set.insert_all(FULL_RANGE.collect::<Vec<_>>());
     set.delete_all(FULL_RANGE.take(Key::MAX as usize - 1).collect::<Vec<_>>());

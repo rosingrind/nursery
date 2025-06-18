@@ -18,7 +18,7 @@ use super::SparSet;
 
 type SetIter<'a, K> = Iter<'a, K>;
 
-pub trait SetRef<K>
+pub trait SetRef<K, const N: usize>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -29,28 +29,28 @@ where
 
     #[cfg(not(feature = "rayon"))]
     /// A ∩ B
-    fn intersection<'a>(&'a self, other: &'a Self) -> Intersection<'a, K>;
+    fn intersection<'a>(&'a self, other: &'a Self) -> Intersection<'a, K, N>;
     #[cfg(feature = "rayon")]
     /// A ∩ B (parallel)
     fn intersection(&self, other: &Self) -> impl SetRef;
 
     #[cfg(not(feature = "rayon"))]
     /// A ∪ B
-    fn union<'a>(&'a self, other: &'a Self) -> Union<'a, K>;
+    fn union<'a>(&'a self, other: &'a Self) -> Union<'a, K, N>;
     #[cfg(feature = "rayon")]
     /// A ∪ B (parallel)
     fn union(&self, other: &Self) -> impl SetRef;
 
     #[cfg(not(feature = "rayon"))]
     /// A − B
-    fn difference<'a>(&'a self, other: &'a Self) -> Difference<'a, K>;
+    fn difference<'a>(&'a self, other: &'a Self) -> Difference<'a, K, N>;
     #[cfg(feature = "rayon")]
     /// A − B (parallel)
     fn difference(&self, other: &Self) -> impl SetRef;
 
     #[cfg(not(feature = "rayon"))]
     /// A − B
-    fn symmetric_difference<'a>(&'a self, other: &'a Self) -> SymmetricDifference<'a, K>;
+    fn symmetric_difference<'a>(&'a self, other: &'a Self) -> SymmetricDifference<'a, K, N>;
 
     fn is_disjoint(&self, other: &Self) -> bool;
 
@@ -59,7 +59,7 @@ where
     fn is_superset(&self, other: &Self) -> bool;
 }
 
-impl<K> SetRef<K> for SparSet<K>
+impl<K, const N: usize> SetRef<K, N> for SparSet<K, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -75,7 +75,7 @@ where
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
-    fn intersection<'a>(&'a self, other: &'a Self) -> Intersection<'a, K> {
+    fn intersection<'a>(&'a self, other: &'a Self) -> Intersection<'a, K, N> {
         let (smaller, larger) = if self.len() <= other.len() {
             (self, other)
         } else {
@@ -94,7 +94,7 @@ where
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
-    fn union<'a>(&'a self, other: &'a Self) -> Union<'a, K> {
+    fn union<'a>(&'a self, other: &'a Self) -> Union<'a, K, N> {
         let (smaller, larger) = if self.len() <= other.len() {
             (self, other)
         } else {
@@ -113,7 +113,7 @@ where
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
-    fn difference<'a>(&'a self, other: &'a Self) -> Difference<'a, K> {
+    fn difference<'a>(&'a self, other: &'a Self) -> Difference<'a, K, N> {
         Difference {
             iter: self.iter(),
             other,
@@ -128,7 +128,7 @@ where
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
-    fn symmetric_difference<'a>(&'a self, other: &'a Self) -> SymmetricDifference<'a, K> {
+    fn symmetric_difference<'a>(&'a self, other: &'a Self) -> SymmetricDifference<'a, K, N> {
         SymmetricDifference {
             iter: self.difference(other).chain(other.difference(self)),
         }

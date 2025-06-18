@@ -15,7 +15,7 @@ pub use impl_ref::SetRef;
 
 #[cfg_attr(feature = "bitcode", derive(Decode, Encode))]
 #[derive(Clone)]
-pub struct SparSet<K: Unsigned> {
+pub struct SparSet<K: Unsigned, const N: usize> {
     sparse: Box<[K]>,
     len: K,
     dense: Box<[K]>,
@@ -24,7 +24,7 @@ pub struct SparSet<K: Unsigned> {
     mask: BitBox,
 }
 
-impl<K> Default for SparSet<K>
+impl<K, const N: usize> Default for SparSet<K, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -34,7 +34,7 @@ where
     }
 }
 
-impl<K> SparSet<K>
+impl<K, const N: usize> SparSet<K, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -42,10 +42,12 @@ where
 
     #[cfg_attr(feature = "inline-more", inline)]
     pub fn new() -> Self {
+        assert!(N <= Self::MAX_K);
+
         Self {
-            sparse: unsafe { Box::new_uninit_slice(crate::Key::MAX as usize).assume_init() },
+            sparse: unsafe { Box::new_uninit_slice(N).assume_init() },
             len: K::zero(),
-            dense: unsafe { Box::new_uninit_slice(crate::Key::MAX as usize).assume_init() },
+            dense: unsafe { Box::new_uninit_slice(N).assume_init() },
             #[cfg(feature = "bitmask")]
             mask: bitvec::bitbox![0; Self::MAX_K],
         }
@@ -215,7 +217,7 @@ where
     }
 }
 
-impl<'a, K> IntoIterator for &'a SparSet<K>
+impl<'a, K, const N: usize> IntoIterator for &'a SparSet<K, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -228,7 +230,7 @@ where
     }
 }
 
-impl<'a, K> IntoIterator for &'a mut SparSet<K>
+impl<'a, K, const N: usize> IntoIterator for &'a mut SparSet<K, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {

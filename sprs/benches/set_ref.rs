@@ -1,6 +1,6 @@
 use divan::{Bencher, black_box};
 use sprs::{
-    Key,
+    KEY_MAX, Key,
     set::{SetMut, SetRef, SparSet},
 };
 
@@ -10,7 +10,7 @@ use rayon::prelude::*;
 #[divan::bench(threads = [0, 1])]
 fn contains(bencher: Bencher) {
     bencher.bench(move || {
-        let mut set = black_box(SparSet::<Key>::new());
+        let mut set = black_box(SparSet::<Key, KEY_MAX>::new());
         black_box(&mut set).insert_one(black_box(5));
         black_box(&mut set).contains(black_box(5));
         black_box(&mut set).contains(black_box(0));
@@ -23,8 +23,8 @@ fn intersection(bencher: Bencher) {
     let vec_b = (0..Key::MAX).rev().collect::<Vec<_>>();
 
     bencher.bench(|| {
-        let mut a = black_box(SparSet::new());
-        let mut b = black_box(SparSet::new());
+        let mut a = black_box(SparSet::<Key, KEY_MAX>::new());
+        let mut b = black_box(SparSet::<Key, KEY_MAX>::new());
         black_box(&mut a).insert_all(black_box(vec_a.clone()));
         black_box(&mut b).insert_all(black_box(vec_b.clone()));
 
@@ -39,8 +39,8 @@ fn union(bencher: Bencher) {
     let vec_b = (0..Key::MAX).rev().collect::<Vec<_>>();
 
     bencher.bench(|| {
-        let mut a = black_box(SparSet::new());
-        let mut b = black_box(SparSet::new());
+        let mut a = black_box(SparSet::<Key, KEY_MAX>::new());
+        let mut b = black_box(SparSet::<Key, KEY_MAX>::new());
         black_box(&mut a).insert_all(black_box(vec_a.clone()));
         black_box(&mut b).insert_all(black_box(vec_b.clone()));
 
@@ -55,8 +55,8 @@ fn difference(bencher: Bencher) {
     let vec_b = (0..Key::MAX).rev().collect::<Vec<_>>();
 
     bencher.bench(|| {
-        let mut a = black_box(SparSet::new());
-        let mut b = black_box(SparSet::new());
+        let mut a = black_box(SparSet::<Key, KEY_MAX>::new());
+        let mut b = black_box(SparSet::<Key, KEY_MAX>::new());
         black_box(&mut a).insert_all(black_box(vec_a.clone()));
         black_box(&mut b).insert_all(black_box(vec_b.clone()));
 

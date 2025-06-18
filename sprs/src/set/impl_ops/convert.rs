@@ -2,7 +2,7 @@ use num_traits::{AsPrimitive, Unsigned};
 
 use crate::set::{SetMut, SparSet};
 
-impl<K> FromIterator<K> for SparSet<K>
+impl<K, const N: usize> FromIterator<K> for SparSet<K, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -14,16 +14,16 @@ where
     }
 }
 
-impl<K, const N: usize> From<[K; N]> for SparSet<K>
+impl<K, const N: usize, const M: usize> From<[K; M]> for SparSet<K, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
-    fn from(arr: [K; N]) -> Self {
+    fn from(arr: [K; M]) -> Self {
         arr.into_iter().collect()
     }
 }
 
-impl<K> Extend<K> for SparSet<K>
+impl<K, const N: usize> Extend<K> for SparSet<K, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -41,7 +41,7 @@ where
     }
 }
 
-impl<'a, K> Extend<&'a K> for SparSet<K>
+impl<'a, K, const N: usize> Extend<&'a K> for SparSet<K, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {

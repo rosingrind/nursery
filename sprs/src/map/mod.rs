@@ -13,7 +13,7 @@ pub use impl_mut::MapMut;
 pub use impl_ref::MapRef;
 
 use crate::{
-    Key,
+    KEY_MAX, Key,
     set::{SetRef, SparSet},
 };
 
@@ -26,7 +26,7 @@ type MapSliceMask = bitvec::BitArr!(for Key::MAX as usize, in Key);
 #[cfg_attr(feature = "bitcode", derive(Decode, Encode))]
 #[derive(Clone)]
 pub struct SparMap<T> {
-    keys: SparSet<Key>,
+    keys: SparSet<Key, KEY_MAX>,
     // TOOD: a generic storage (availability to store GPU buffer slice instead of this)
     vals: Box<[T]>,
 }
@@ -63,7 +63,7 @@ impl<T: Send + Sync + Copy> SparMap<T> {
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
-    pub fn as_keys_set(&self) -> &impl SetRef<Key> {
+    pub fn as_keys_set(&self) -> &impl SetRef<Key, KEY_MAX> {
         &self.keys
     }
 

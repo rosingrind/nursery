@@ -6,7 +6,7 @@ use recall::*;
 
 use super::{SetRef, SparSet};
 
-pub trait SetMut<K>
+pub trait SetMut<K, const N: usize>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -21,7 +21,7 @@ where
     ///
     /// Removes entries specified by predicate and returns
     /// an iterator over deleted values
-    fn recall<F>(&mut self, f: F) -> Recall<'_, K, F>
+    fn recall<F>(&mut self, f: F) -> Recall<'_, K, N, F>
     where
         F: Fn(&K) -> bool;
 
@@ -40,7 +40,7 @@ where
     fn delete_all(&mut self, k: Vec<K>);
 }
 
-impl<K> SetMut<K> for SparSet<K>
+impl<K, const N: usize> SetMut<K, N> for SparSet<K, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -68,7 +68,7 @@ where
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn recall<F>(&mut self, f: F) -> Recall<'_, K, F>
+    fn recall<F>(&mut self, f: F) -> Recall<'_, K, N, F>
     where
         F: Fn(&K) -> bool,
     {
