@@ -5,7 +5,7 @@ use rayon::prelude::*;
 
 use super::{Key, SparMap};
 
-pub(crate) type MapIter<'a, T> = Zip<Iter<'a, Key>, Iter<'a, T>>;
+pub(super) type MapIter<'a, T> = Zip<Iter<'a, Key>, Iter<'a, T>>;
 
 pub trait MapRef<T> {
     fn iter(&self) -> MapIter<T>;
