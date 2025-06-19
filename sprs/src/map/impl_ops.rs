@@ -7,7 +7,7 @@ use num_traits::{AsPrimitive, Unsigned};
 
 use super::{SparMap, impl_mut::MapMut, impl_ref::MapRef};
 
-impl<K, T> PartialEq for SparMap<K, T>
+impl<K, T, const N: usize> PartialEq for SparMap<K, T, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     T: Send + Sync + Copy + PartialEq,
@@ -25,14 +25,14 @@ where
     }
 }
 
-impl<K, T> Eq for SparMap<K, T>
+impl<K, T, const N: usize> Eq for SparMap<K, T, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     T: Send + Sync + Copy + PartialEq,
 {
 }
 
-impl<K, T> Debug for SparMap<K, T>
+impl<K, T, const N: usize> Debug for SparMap<K, T, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd + Debug,
     T: Send + Sync + Copy + Debug,
@@ -42,7 +42,7 @@ where
     }
 }
 
-impl<K, T> FromIterator<(K, T)> for SparMap<K, T>
+impl<K, T, const N: usize> FromIterator<(K, T)> for SparMap<K, T, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     T: Send + Sync + Copy,
@@ -55,7 +55,7 @@ where
     }
 }
 
-impl<K, T, const M: usize> From<[(K, T); M]> for SparMap<K, T>
+impl<K, T, const N: usize, const M: usize> From<[(K, T); M]> for SparMap<K, T, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     T: Send + Sync + Copy,
@@ -65,7 +65,7 @@ where
     }
 }
 
-impl<K, T> Extend<(K, T)> for SparMap<K, T>
+impl<K, T, const N: usize> Extend<(K, T)> for SparMap<K, T, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     T: Send + Sync + Copy,
@@ -84,7 +84,7 @@ where
     }
 }
 
-impl<'a, K, T> Extend<(&'a K, &'a T)> for SparMap<K, T>
+impl<'a, K, T, const N: usize> Extend<(&'a K, &'a T)> for SparMap<K, T, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     T: Send + Sync + Copy,
@@ -101,7 +101,7 @@ where
     }
 }
 
-impl<'a, K, T> Extend<&'a (K, T)> for SparMap<K, T>
+impl<'a, K, T, const N: usize> Extend<&'a (K, T)> for SparMap<K, T, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     T: Send + Sync + Copy,
@@ -118,7 +118,7 @@ where
     }
 }
 
-impl<K, T> Index<K> for SparMap<K, T>
+impl<K, T, const N: usize> Index<K> for SparMap<K, T, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     T: Send + Sync + Copy,

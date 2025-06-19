@@ -4,15 +4,15 @@ use num_traits::{AsPrimitive, Unsigned};
 
 use crate::map::{MapMut, SparMap};
 
-pub(super) struct RawRecall<'a, K, T>
+pub(super) struct RawRecall<'a, K, T, const N: usize>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
     pub(super) iter: std::vec::IntoIter<(K, T)>,
-    pub(super) table: &'a mut SparMap<K, T>,
+    pub(super) table: &'a mut SparMap<K, T, N>,
 }
 
-impl<K, T> RawRecall<'_, K, T>
+impl<K, T, const N: usize> RawRecall<'_, K, T, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     T: Send + Sync + Copy,
@@ -31,16 +31,16 @@ where
     }
 }
 
-pub struct Recall<'a, K, T, F>
+pub struct Recall<'a, K, T, const N: usize, F>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     F: Fn(&K, &T) -> bool,
 {
     pub(super) f: F,
-    pub(super) inner: RawRecall<'a, K, T>,
+    pub(super) inner: RawRecall<'a, K, T, N>,
 }
 
-impl<K, T, F> Iterator for Recall<'_, K, T, F>
+impl<K, T, const N: usize, F> Iterator for Recall<'_, K, T, N, F>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     T: Send + Sync + Copy,
@@ -59,7 +59,7 @@ where
     }
 }
 
-impl<K, T, F> iter::FusedIterator for Recall<'_, K, T, F>
+impl<K, T, const N: usize, F> iter::FusedIterator for Recall<'_, K, T, N, F>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     T: Send + Sync + Copy,
@@ -67,7 +67,7 @@ where
 {
 }
 
-impl<K, T, F> iter::ExactSizeIterator for Recall<'_, K, T, F>
+impl<K, T, const N: usize, F> iter::ExactSizeIterator for Recall<'_, K, T, N, F>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     T: Send + Sync + Copy,

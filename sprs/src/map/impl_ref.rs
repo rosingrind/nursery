@@ -15,7 +15,7 @@ where
     fn iter(&self) -> MapIter<K, T>;
 }
 
-impl<K, T> MapRef<K, T> for SparMap<K, T>
+impl<K, T, const N: usize> MapRef<K, T> for SparMap<K, T, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {

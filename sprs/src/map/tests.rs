@@ -5,7 +5,7 @@ use std::borrow::ToOwned;
 use std::cell::RefCell;
 use std::vec::Vec;
 
-type MockMap<T> = SparMap<Key, T>;
+type MockMap<T> = SparMap<Key, T, KEY_MAX>;
 
 #[test]
 fn regular_ops() {

@@ -1,5 +1,5 @@
 use sprs::{
-    Key,
+    KEY_MAX, Key,
     map::{MapMut, MapRef, SparMap},
 };
 
@@ -10,7 +10,7 @@ const FULL_RANGE: std::ops::Range<Key> = 0..Key::MAX;
 
 #[test]
 fn insert_all() {
-    let mut map = SparMap::new();
+    let mut map = SparMap::<_, _, KEY_MAX>::new();
 
     let tmp = FULL_RANGE.map(|x| (x, x.to_string())).collect::<Vec<_>>();
     let all = tmp
@@ -31,7 +31,7 @@ fn insert_all() {
 
 #[test]
 fn delete_all() {
-    let mut map = SparMap::new();
+    let mut map = SparMap::<_, _, KEY_MAX>::new();
 
     let tmp = FULL_RANGE.map(|x| (x, x.to_string())).collect::<Vec<_>>();
     let all = tmp

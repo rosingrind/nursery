@@ -1,6 +1,6 @@
 use divan::{Bencher, black_box};
 use sprs::{
-    Key,
+    KEY_MAX, Key,
     map::{MapMut, SparMap},
 };
 
@@ -9,7 +9,7 @@ use rayon::prelude::*;
 
 #[divan::bench(threads = [0, 1])]
 fn contains(bencher: Bencher) {
-    let mut map = SparMap::<Key, &str>::new();
+    let mut map = SparMap::<Key, &str, KEY_MAX>::new();
     map.insert_one(5, "5");
 
     bencher.bench(|| {
@@ -21,7 +21,7 @@ fn contains(bencher: Bencher) {
 
 #[divan::bench(threads = [0, 1])]
 fn query_one(bencher: Bencher) {
-    let mut map = SparMap::<Key, &str>::new();
+    let mut map = SparMap::<Key, &str, KEY_MAX>::new();
     map.insert_one(5, "5");
 
     bencher.bench(|| {
@@ -33,7 +33,7 @@ fn query_one(bencher: Bencher) {
 
 #[divan::bench(threads = [0, 1])]
 fn query_all(bencher: Bencher) {
-    let mut map = SparMap::<Key, &str>::new();
+    let mut map = SparMap::<Key, &str, KEY_MAX>::new();
     let vec = (0..Key::MAX).collect::<Vec<_>>();
     let tmp = (0..Key::MAX)
         .map(|x| (x, x.to_string()))

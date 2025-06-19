@@ -23,13 +23,13 @@ use crate::{
 // by position (find all by `x` in range, by `y` in range, intersect results)
 #[cfg_attr(feature = "bitcode", derive(Decode, Encode))]
 #[derive(Clone)]
-pub struct SparMap<K: Unsigned, T> {
+pub struct SparMap<K: Unsigned, T, const N: usize> {
     keys: SparSet<K, KEY_MAX>,
     // TOOD: a generic storage (availability to store GPU buffer slice instead of this)
     vals: Box<[T]>,
 }
 
-impl<K, T> Default for SparMap<K, T>
+impl<K, T, const N: usize> Default for SparMap<K, T, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     T: Send + Sync + Copy,
@@ -40,7 +40,7 @@ where
     }
 }
 
-impl<K, T> SparMap<K, T>
+impl<K, T, const N: usize> SparMap<K, T, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     T: Send + Sync + Copy,
@@ -151,7 +151,7 @@ where
     }
 }
 
-impl<'a, K, T> IntoIterator for &'a SparMap<K, T>
+impl<'a, K, T, const N: usize> IntoIterator for &'a SparMap<K, T, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -164,7 +164,7 @@ where
     }
 }
 
-impl<'a, K, T> IntoIterator for &'a mut SparMap<K, T>
+impl<'a, K, T, const N: usize> IntoIterator for &'a mut SparMap<K, T, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {

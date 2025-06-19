@@ -8,7 +8,7 @@ use crate::set::SetMut;
 
 use super::{MapRef, SparMap};
 
-pub trait MapMut<K, T>
+pub trait MapMut<K, T, const N: usize>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -23,7 +23,7 @@ where
     ///
     /// Removes entries specified by predicate and returns
     /// an iterator over deleted's values
-    fn recall<F>(&mut self, f: F) -> Recall<'_, K, T, F>
+    fn recall<F>(&mut self, f: F) -> Recall<'_, K, T, N, F>
     where
         F: Fn(&K, &T) -> bool;
 
@@ -40,7 +40,7 @@ where
     fn delete_all(&mut self, k: &[K]);
 }
 
-impl<K, T> MapMut<K, T> for SparMap<K, T>
+impl<K, T, const N: usize> MapMut<K, T, N> for SparMap<K, T, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     T: Send + Sync + Copy,
@@ -65,7 +65,7 @@ where
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn recall<F>(&mut self, f: F) -> Recall<'_, K, T, F>
+    fn recall<F>(&mut self, f: F) -> Recall<'_, K, T, N, F>
     where
         F: Fn(&K, &T) -> bool,
     {
