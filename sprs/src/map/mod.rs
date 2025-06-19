@@ -6,6 +6,7 @@ mod tests;
 
 #[cfg(feature = "bitcode")]
 use bitcode::{Decode, Encode};
+use num_traits::{AsPrimitive, Unsigned};
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;
 
@@ -17,28 +18,35 @@ use crate::{
     set::{SetRef, SparSet},
 };
 
-pub type MapSlice<T> = [T; Key::MAX as usize];
-type MapSliceMask = bitvec::BitArr!(for Key::MAX as usize, in Key);
-
 // TOOD: sorted criteria; for example you can store `Pos { x, y }`
 // as `x` and `y`, and sort each other - this allows to query
 // by position (find all by `x` in range, by `y` in range, intersect results)
 #[cfg_attr(feature = "bitcode", derive(Decode, Encode))]
 #[derive(Clone)]
-pub struct SparMap<T> {
-    keys: SparSet<Key, KEY_MAX>,
+pub struct SparMap<K: Unsigned, T> {
+    keys: SparSet<K, KEY_MAX>,
     // TOOD: a generic storage (availability to store GPU buffer slice instead of this)
     vals: Box<[T]>,
 }
 
-impl<T: Send + Sync + Copy> Default for SparMap<T> {
+impl<K, T> Default for SparMap<K, T>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+    T: Send + Sync + Copy,
+{
     #[cfg_attr(feature = "inline-more", inline)]
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T: Send + Sync + Copy> SparMap<T> {
+impl<K, T> SparMap<K, T>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+    T: Send + Sync + Copy,
+{
+    pub const MAX_K: usize = 2usize.pow(size_of::<K>() as u32 * 8) - 1;
+
     #[cfg_attr(feature = "inline-more", inline)]
     pub fn new() -> Self {
         Self {
@@ -48,7 +56,7 @@ impl<T: Send + Sync + Copy> SparMap<T> {
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
-    pub fn len(&self) -> Key {
+    pub fn len(&self) -> K {
         self.keys.len()
     }
 
@@ -58,84 +66,82 @@ impl<T: Send + Sync + Copy> SparMap<T> {
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
-    pub fn as_keys(&self) -> &[Key] {
+    pub fn as_keys(&self) -> &[K] {
         self.keys.as_slice()
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
-    pub fn as_keys_set(&self) -> &impl SetRef<Key, KEY_MAX> {
+    pub fn as_keys_set(&self) -> &impl SetRef<K, KEY_MAX> {
         &self.keys
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
     pub fn as_vals(&self) -> &[T] {
-        let len = self.len() as usize;
+        let len = self.len().as_();
         &self.vals[..len]
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
     pub fn as_vals_mut(&mut self) -> &mut [T] {
-        let len = self.len() as usize;
+        let len = self.len().as_();
         &mut self.vals[..len]
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
-    pub fn query_one(&self, k: Key) -> Option<&T> {
-        self.keys.as_index_one(k).map(|k| &self.vals[k as usize])
+    pub fn query_one(&self, k: K) -> Option<&T> {
+        self.keys.as_index_one(k).map(|k| &self.vals[k.as_()])
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
-    pub fn query_one_mut(&mut self, k: Key) -> Option<&mut T> {
-        self.keys
-            .as_index_one(k)
-            .map(|k| &mut self.vals[k as usize])
+    pub fn query_one_mut(&mut self, k: K) -> Option<&mut T> {
+        self.keys.as_index_one(k).map(|k| &mut self.vals[k.as_()])
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
-    pub fn query_all(&self, k: &[Key]) -> impl Iterator<Item = &T> {
-        self.keys.as_index_all(k).map(|k| &self.vals[k as usize])
+    pub fn query_all(&self, k: &[K]) -> impl Iterator<Item = &T> {
+        self.keys.as_index_all(k).map(|k| &self.vals[k.as_()])
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(feature = "rayon")]
-    pub fn query_all(&self, k: &[Key]) -> impl ParallelIterator<Item = &T> {
-        self.keys.as_index_all(k).map(|k| &self.vals[k as usize])
+    pub fn query_all(&self, k: &[K]) -> impl ParallelIterator<Item = &T> {
+        self.keys.as_index_all(k).map(|k| &self.vals[k.as_()])
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
-    pub fn query_all_mut(&mut self, k: &[Key]) -> impl Iterator<Item = &mut T> {
+    pub fn query_all_mut(&mut self, k: &[K]) -> impl Iterator<Item = &mut T> {
         self.keys.as_index_all(k).map(|k| {
             let ptr = self.vals.as_ptr();
             let raw = ptr as *mut T;
-            unsafe { &mut *raw.add(k as usize) }
+            unsafe { &mut *raw.add(k.as_()) }
         })
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(feature = "rayon")]
-    pub fn query_all_mut(&mut self, k: &[Key]) -> impl ParallelIterator<Item = &mut T> {
+    pub fn query_all_mut(&mut self, k: &[K]) -> impl ParallelIterator<Item = &mut T> {
         self.keys.as_index_all(k).map(|k| {
             let ptr = self.vals.as_ptr();
             let raw = ptr as *mut T;
-            unsafe { &mut *raw.add(k as usize) }
+            unsafe { &mut *raw.add(k.as_()) }
         })
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
-    pub fn contains(&self, i: Key) -> bool {
+    pub fn contains(&self, i: K) -> bool {
         self.keys.contains(i)
     }
 
-    pub(crate) fn filter_all_excl(&self, kv: &[(Key, T)]) -> (Vec<Key>, Vec<T>) {
-        let mut bit = MapSliceMask::ZERO;
+    pub(crate) fn filter_all_excl(&self, kv: &[(K, T)]) -> (Vec<K>, Vec<T>) {
+        let mut bit = bitvec::bitbox![0; Self::MAX_K];
         let mut k = Vec::with_capacity(kv.len());
         let mut v = Vec::with_capacity(kv.len());
 
         for (i, x) in kv.iter() {
-            if !bit[*i as usize] && !self.keys.contains(*i) {
-                bit.set(*i as usize, true);
+            if !bit[i.as_()] && !self.keys.contains(*i) {
+                bit.set(i.as_(), true);
                 k.push(*i);
                 v.push(*x);
             }
@@ -145,22 +151,28 @@ impl<T: Send + Sync + Copy> SparMap<T> {
     }
 }
 
-impl<'a, T> IntoIterator for &'a SparMap<T> {
-    type Item = (&'a Key, &'a T);
-    type IntoIter = impl_ref::MapIter<'a, T>;
+impl<'a, K, T> IntoIterator for &'a SparMap<K, T>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
+    type Item = (&'a K, &'a T);
+    type IntoIter = impl_ref::MapIter<'a, K, T>;
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn into_iter(self) -> impl_ref::MapIter<'a, T> {
+    fn into_iter(self) -> impl_ref::MapIter<'a, K, T> {
         self.iter()
     }
 }
 
-impl<'a, T> IntoIterator for &'a mut SparMap<T> {
-    type Item = (&'a Key, &'a T);
-    type IntoIter = impl_ref::MapIter<'a, T>;
+impl<'a, K, T> IntoIterator for &'a mut SparMap<K, T>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
+    type Item = (&'a K, &'a T);
+    type IntoIter = impl_ref::MapIter<'a, K, T>;
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn into_iter(self) -> impl_ref::MapIter<'a, T> {
+    fn into_iter(self) -> impl_ref::MapIter<'a, K, T> {
         self.iter()
     }
 }

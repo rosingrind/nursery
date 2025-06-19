@@ -5,9 +5,11 @@ use std::borrow::ToOwned;
 use std::cell::RefCell;
 use std::vec::Vec;
 
+type MockMap<T> = SparMap<Key, T>;
+
 #[test]
 fn regular_ops() {
-    let mut map = SparMap::new();
+    let mut map = MockMap::new();
 
     assert!(map.vals[..map.len() as usize].is_empty());
     assert!(map.as_vals().is_empty());
@@ -57,7 +59,7 @@ fn regular_ops() {
 
 #[test]
 fn batched_ops() {
-    let mut map = SparMap::new();
+    let mut map = MockMap::new();
 
     map.insert_all(vec![(4, "0"), (5, "1"), (6, "2"), (7, "3")]);
     assert_eq!(
@@ -87,7 +89,7 @@ fn batched_ops() {
 
 #[test]
 fn test_zero_capacities() {
-    type HM = SparMap<i32>;
+    type HM = MockMap<i32>;
 
     let m = HM::new();
     assert_eq!(m.len(), 0);
@@ -108,7 +110,7 @@ fn test_zero_capacities() {
 
 #[test]
 fn test_create_capacity_zero() {
-    let mut m = SparMap::default();
+    let mut m = MockMap::default();
 
     assert!(m.insert_one(1, 1).is_none());
 
@@ -118,7 +120,7 @@ fn test_create_capacity_zero() {
 
 #[test]
 fn test_insert() {
-    let mut m = SparMap::new();
+    let mut m = MockMap::new();
     assert_eq!(m.len(), 0);
     assert!(m.insert_one(1, 2).is_none());
     assert_eq!(m.len(), 1);
@@ -130,7 +132,7 @@ fn test_insert() {
 
 #[test]
 fn test_clone() {
-    let mut m = SparMap::new();
+    let mut m = MockMap::new();
     assert_eq!(m.len(), 0);
     assert!(m.insert_one(1, 2).is_none());
     assert_eq!(m.len(), 1);
@@ -145,8 +147,8 @@ fn test_clone() {
 
 #[test]
 fn test_clone_from() {
-    let mut m = SparMap::new();
-    let mut m2 = SparMap::new();
+    let mut m = MockMap::new();
+    let mut m2 = MockMap::new();
     assert_eq!(m.len(), 0);
     assert!(m.insert_one(1, 2).is_none());
     assert_eq!(m.len(), 1);
@@ -191,13 +193,13 @@ impl Clone for Droppable {
 
 #[test]
 fn test_empty_remove() {
-    let mut m: SparMap<i32> = SparMap::new();
+    let mut m: MockMap<i32> = MockMap::new();
     assert_eq!(m.delete_one(0), None);
 }
 
 #[test]
 fn test_empty_iter() {
-    let mut m: SparMap<i32> = SparMap::new();
+    let mut m: MockMap<i32> = MockMap::new();
     assert_eq!(m.iter().next(), None);
     assert_eq!(m.as_keys().iter().next(), None);
     assert_eq!(m.as_vals().iter().next(), None);
@@ -210,7 +212,7 @@ fn test_empty_iter() {
 #[test]
 #[cfg_attr(miri, ignore)] // FIXME: takes too long
 fn test_lots_of_insertions() {
-    let mut m = SparMap::new();
+    let mut m = MockMap::new();
 
     // Try this a few times to make sure we never screw up the hashmap's
     // internal state.
@@ -273,7 +275,7 @@ fn test_lots_of_insertions() {
 
 #[test]
 fn test_find_mut() {
-    let mut m = SparMap::new();
+    let mut m = MockMap::new();
     assert!(m.insert_one(1, 12).is_none());
     assert!(m.insert_one(2, 8).is_none());
     assert!(m.insert_one(5, 14).is_none());
@@ -287,7 +289,7 @@ fn test_find_mut() {
 
 #[test]
 fn test_insert_overwrite() {
-    let mut m = SparMap::new();
+    let mut m = MockMap::new();
     assert!(m.insert_one(1, 2).is_none());
     assert_eq!(*m.query_one(1).unwrap(), 2);
     assert!(m.insert_one(1, 3).is_some());
@@ -296,7 +298,7 @@ fn test_insert_overwrite() {
 
 #[test]
 fn test_insert_conflicts() {
-    let mut m = SparMap::new();
+    let mut m = MockMap::new();
     assert!(m.insert_one(1, 2).is_none());
     assert!(m.insert_one(5, 3).is_none());
     assert!(m.insert_one(9, 4).is_none());
@@ -307,7 +309,7 @@ fn test_insert_conflicts() {
 
 #[test]
 fn test_conflict_remove() {
-    let mut m = SparMap::new();
+    let mut m = MockMap::new();
     assert!(m.insert_one(1, 2).is_none());
     assert_eq!(*m.query_one(1).unwrap(), 2);
     assert!(m.insert_one(5, 3).is_none());
@@ -324,7 +326,7 @@ fn test_conflict_remove() {
 
 #[test]
 fn test_is_empty() {
-    let mut m = SparMap::new();
+    let mut m = MockMap::new();
     assert!(m.insert_one(1, 2).is_none());
     assert!(!m.is_empty());
     assert!(m.delete_one(1).is_some());
@@ -333,7 +335,7 @@ fn test_is_empty() {
 
 #[test]
 fn test_remove() {
-    let mut m = SparMap::new();
+    let mut m = MockMap::new();
     m.insert_one(1, 2);
     assert_eq!(m.delete_one(1), Some(2));
     assert_eq!(m.delete_one(1), None);
@@ -341,7 +343,7 @@ fn test_remove() {
 
 #[test]
 fn test_remove_entry() {
-    let mut m = SparMap::new();
+    let mut m = MockMap::new();
     m.insert_one(1, 2);
     assert_eq!(m.delete_one(1), Some(2));
     assert_eq!(m.delete_one(1), None);
@@ -349,7 +351,7 @@ fn test_remove_entry() {
 
 #[test]
 fn test_iterate() {
-    let mut m = SparMap::new();
+    let mut m = MockMap::new();
     for i in 0..32 {
         assert!(m.insert_one(i, i * 2).is_none());
     }
@@ -367,7 +369,7 @@ fn test_iterate() {
 #[test]
 fn test_keys() {
     let vec = vec![(1, 'a'), (2, 'b'), (3, 'c')];
-    let map: SparMap<_> = vec.into_iter().collect();
+    let map: MockMap<_> = vec.into_iter().collect();
     let keys: Vec<_> = map.as_keys().to_vec();
     assert_eq!(keys.len(), 3);
     assert!(keys.contains(&1));
@@ -378,7 +380,7 @@ fn test_keys() {
 #[test]
 fn test_values() {
     let vec = vec![(1, 'a'), (2, 'b'), (3, 'c')];
-    let map: SparMap<_> = vec.into_iter().collect();
+    let map: MockMap<_> = vec.into_iter().collect();
     let values: Vec<_> = map.as_vals().to_vec();
     assert_eq!(values.len(), 3);
     assert!(values.contains(&'a'));
@@ -389,7 +391,7 @@ fn test_values() {
 #[test]
 fn test_values_mut() {
     let vec = vec![(1, 1), (2, 2), (3, 3)];
-    let mut map: SparMap<_> = vec.into_iter().collect();
+    let mut map: MockMap<_> = vec.into_iter().collect();
     for value in map.as_vals_mut() {
         *value *= 2;
     }
@@ -403,7 +405,7 @@ fn test_values_mut() {
 #[test]
 fn test_into_keys() {
     let vec = vec![(1, 'a'), (2, 'b'), (3, 'c')];
-    let map: SparMap<_> = vec.into_iter().collect();
+    let map: MockMap<_> = vec.into_iter().collect();
     let keys: Vec<_> = map.as_keys().to_vec();
 
     assert_eq!(keys.len(), 3);
@@ -415,7 +417,7 @@ fn test_into_keys() {
 #[test]
 fn test_into_values() {
     let vec = vec![(1, 'a'), (2, 'b'), (3, 'c')];
-    let map: SparMap<_> = vec.into_iter().collect();
+    let map: MockMap<_> = vec.into_iter().collect();
     let values: Vec<_> = map.as_vals().to_vec();
 
     assert_eq!(values.len(), 3);
@@ -426,7 +428,7 @@ fn test_into_values() {
 
 #[test]
 fn test_find() {
-    let mut m = SparMap::new();
+    let mut m = MockMap::new();
     assert!(m.query_one(1).is_none());
     m.insert_one(1, 2);
     match m.query_one(1) {
@@ -437,12 +439,12 @@ fn test_find() {
 
 #[test]
 fn test_eq() {
-    let mut m1 = SparMap::new();
+    let mut m1 = MockMap::new();
     m1.insert_one(1, 2);
     m1.insert_one(2, 3);
     m1.insert_one(3, 4);
 
-    let mut m2 = SparMap::new();
+    let mut m2 = MockMap::new();
     m2.insert_one(1, 2);
     m2.insert_one(2, 3);
 
@@ -455,8 +457,8 @@ fn test_eq() {
 
 #[test]
 fn test_show() {
-    let mut map = SparMap::new();
-    let empty: SparMap<i32> = SparMap::new();
+    let mut map = MockMap::new();
+    let empty: MockMap<i32> = MockMap::new();
 
     map.insert_one(1, 2);
     map.insert_one(3, 4);
@@ -471,7 +473,7 @@ fn test_show() {
 fn test_from_iter() {
     let xs = [(1, 1), (2, 2), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6)];
 
-    let map: SparMap<_> = xs.iter().copied().collect();
+    let map: MockMap<_> = xs.iter().copied().collect();
 
     for &(k, v) in &xs {
         assert_eq!(map.query_one(k), Some(&v));
@@ -484,7 +486,7 @@ fn test_from_iter() {
 fn test_size_hint() {
     let xs = [(1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6)];
 
-    let map: SparMap<_> = xs.iter().copied().collect();
+    let map: MockMap<_> = xs.iter().copied().collect();
 
     let mut iter = map.iter();
 
@@ -497,7 +499,7 @@ fn test_size_hint() {
 fn test_iter_len() {
     let xs = [(1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6)];
 
-    let map: SparMap<_> = xs.iter().copied().collect();
+    let map: MockMap<_> = xs.iter().copied().collect();
 
     let mut iter = map.iter();
 
@@ -510,7 +512,7 @@ fn test_iter_len() {
 // fn test_mut_size_hint() {
 //     let xs = [(1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6)];
 
-//     let mut map: SparMap<_> = xs.iter().copied().collect();
+//     let mut map: MockMap<_> = xs.iter().copied().collect();
 
 //     let mut iter = map.iter_mut();
 
@@ -523,7 +525,7 @@ fn test_iter_len() {
 // fn test_iter_mut_len() {
 //     let xs = [(1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6)];
 
-//     let mut map: SparMap<_> = xs.iter().copied().collect();
+//     let mut map: MockMap<_> = xs.iter().copied().collect();
 
 //     let mut iter = map.iter_mut();
 
@@ -534,7 +536,7 @@ fn test_iter_len() {
 
 #[test]
 fn test_index() {
-    let mut map = SparMap::new();
+    let mut map = MockMap::new();
 
     map.insert_one(1, 2);
     map.insert_one(2, 1);
@@ -546,7 +548,7 @@ fn test_index() {
 #[test]
 #[should_panic]
 fn test_index_nonexistent() {
-    let mut map = SparMap::new();
+    let mut map = MockMap::new();
 
     map.insert_one(1, 2);
     map.insert_one(2, 1);
@@ -558,9 +560,9 @@ fn test_index_nonexistent() {
 
 #[test]
 fn test_extend_ref_k_ref_v() {
-    let mut a = SparMap::new();
+    let mut a = MockMap::new();
     a.insert_one(1, "one");
-    let mut b = SparMap::new();
+    let mut b = MockMap::new();
     b.insert_one(2, "two");
     b.insert_one(3, "three");
 
@@ -576,7 +578,7 @@ fn test_extend_ref_k_ref_v() {
 #[allow(clippy::needless_borrow)]
 fn test_extend_ref_kv_tuple() {
     use std::ops::AddAssign;
-    let mut a = SparMap::new();
+    let mut a = MockMap::new();
     a.insert_one(0, 0);
 
     fn create_arr<T: AddAssign<T> + Copy, const N: usize>(start: T, step: T) -> [(T, T); N] {
@@ -606,7 +608,7 @@ fn test_extend_ref_kv_tuple() {
 
 #[test]
 fn test_replace_entry_with_doesnt_corrupt() {
-    let mut m = SparMap::new();
+    let mut m = MockMap::new();
 
     let mut rng = {
         let seed = u64::from_le_bytes(*b"testseed");
@@ -622,7 +624,7 @@ fn test_replace_entry_with_doesnt_corrupt() {
 
 #[test]
 fn test_retain() {
-    let mut map: SparMap<i32> = (0..100).map(|x| (x as Key, x * 10)).collect();
+    let mut map: MockMap<i32> = (0..100).map(|x| (x as Key, x * 10)).collect();
 
     map.retain(|&k, _| k % 2 == 0);
     assert_eq!(map.len(), 50);
@@ -634,7 +636,7 @@ fn test_retain() {
 #[test]
 fn test_recall() {
     {
-        let mut map: SparMap<i32> = (0..8).map(|x| (x as Key, x * 10)).collect();
+        let mut map: MockMap<i32> = (0..8).map(|x| (x as Key, x * 10)).collect();
         let drained = map.recall(|&k, _| k % 2 == 0);
         let mut out = drained.collect::<Vec<_>>();
         out.sort_unstable();
@@ -642,7 +644,7 @@ fn test_recall() {
         assert_eq!(map.len(), 4);
     }
     {
-        let mut map: SparMap<i32> = (0..8).map(|x| (x as Key, x * 10)).collect();
+        let mut map: MockMap<i32> = (0..8).map(|x| (x as Key, x * 10)).collect();
         map.recall(|&k, _| k % 2 == 0).for_each(drop);
         assert_eq!(map.len(), 4);
     }
@@ -650,7 +652,7 @@ fn test_recall() {
 
 #[test]
 fn test_get_many_mut() {
-    let mut map = SparMap::new();
+    let mut map = MockMap::new();
     map.insert_one(0, "foo");
     map.insert_one(10, "bar");
     map.insert_one(20, "baz");
