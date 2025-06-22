@@ -1,4 +1,5 @@
 use divan::{Bencher, black_box};
+use itertools::Itertools;
 use sprs::{
     KEY_MAX, Key,
     map::{MapMut, SparMap},
@@ -34,7 +35,7 @@ fn query_one(bencher: Bencher) {
 #[divan::bench()]
 fn query_all(bencher: Bencher) {
     let mut map = SparMap::<Key, &str>::new(KEY_MAX);
-    let vec = (0..Key::MAX).collect::<Vec<_>>();
+    let vec = (0..Key::MAX).collect_array::<KEY_MAX>().unwrap();
     let tmp = (0..Key::MAX)
         .map(|x| (x, x.to_string()))
         .collect::<Vec<_>>();

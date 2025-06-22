@@ -73,8 +73,8 @@ fn compare_ops() {
     let mut a = MockSet::new(KEY_MAX);
     let mut b = MockSet::new(KEY_MAX);
 
-    a.insert_all(vec![5, 2]);
-    b.insert_all(vec![5, 3]);
+    a.insert_all(&[5, 2]);
+    b.insert_all(&[5, 3]);
 
     assert_eq!(vec![&5], {
         let mut x = a.intersection(&b).collect::<Vec<_>>();
@@ -135,9 +135,9 @@ fn compare_ops() {
 fn batched_ops() {
     let mut set = MockSet::new(KEY_MAX);
 
-    set.insert_all(vec![4, 5, 6, 7]);
+    set.insert_all(&[4, 5, 6, 7]);
     assert_eq!(set.as_slice(), [4, 5, 6, 7]);
-    set.insert_all(vec![4, 5, 6, 7]);
+    set.insert_all(&[4, 5, 6, 7]);
     assert_eq!(set.as_slice(), [4, 5, 6, 7]);
     assert_eq!(set.as_index_one(6), Some(2));
     assert_eq!(
@@ -147,9 +147,9 @@ fn batched_ops() {
     assert_eq!(set.len, 4);
     assert_eq!(set.len(), set.len);
 
-    set.delete_all(vec![5, 5, 5, 4, 4, 4, 7, 2, 2, 2, 5, 5, 5]);
+    set.delete_all(&[5, 5, 5, 4, 4, 4, 7, 2, 2, 2, 5, 5, 5]);
     assert_eq!(set.as_slice(), [6]);
-    set.delete_all(vec![5, 5, 5, 4, 4, 4, 7, 2, 2, 2, 5, 5, 5]);
+    set.delete_all(&[5, 5, 5, 4, 4, 4, 7, 2, 2, 2, 5, 5, 5]);
     assert_eq!(set.as_slice(), [6]);
     assert_eq!(set.as_index_one(6), Some(0));
     assert_eq!(set.as_index_all(set.as_slice()).collect::<Vec<_>>(), [0]);

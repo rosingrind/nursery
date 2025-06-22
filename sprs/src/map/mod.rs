@@ -134,16 +134,16 @@ where
         self.keys.contains(i)
     }
 
-    pub(crate) fn filter_all_excl(&self, kv: &[(K, V)]) -> (Vec<K>, Vec<V>) {
+    pub(crate) fn filter_all_excl(&self, kv: Vec<(K, V)>) -> (Vec<K>, Vec<V>) {
         let mut bit = bitvec::bitbox![0; Self::MAX_K];
         let mut k = Vec::with_capacity(kv.len());
         let mut v = Vec::with_capacity(kv.len());
 
-        for (i, x) in kv.iter() {
-            if !bit[i.as_()] && !self.keys.contains(*i) {
+        for (i, x) in kv.into_iter() {
+            if !bit[i.as_()] && !self.keys.contains(i) {
                 bit.set(i.as_(), true);
-                k.push(*i);
-                v.push(*x);
+                k.push(i);
+                v.push(x);
             }
         }
 

@@ -31,13 +31,13 @@ where
     /// Batched insert operation
     ///
     /// Returns existing's owned value vec
-    fn insert_all(&mut self, k: Vec<K>); // TODO: replace with &[K]
+    fn insert_all(&mut self, k: &[K]); // TODO: replace with &[K]
 
     /// Delete entry and return operation's result
     fn delete_one(&mut self, k: K) -> bool;
 
     /// Batched delete operation
-    fn delete_all(&mut self, k: Vec<K>); // TODO: replace with &[K]
+    fn delete_all(&mut self, k: &[K]); // TODO: replace with &[K]
 }
 
 impl<K> SetMut<K> for SparSet<K>
@@ -102,8 +102,8 @@ where
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn insert_all(&mut self, k: Vec<K>) {
-        let s = self.filter_all_excl(&k);
+    fn insert_all(&mut self, k: &[K]) {
+        let s = self.filter_all_excl(k);
 
         self.insert_all_seq_uncheck(&s);
     }
@@ -119,8 +119,8 @@ where
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn delete_all(&mut self, k: Vec<K>) {
-        let s = self.filter_all_incl(&k);
+    fn delete_all(&mut self, k: &[K]) {
+        let s = self.filter_all_incl(k);
 
         self.delete_all_seq_uncheck(&s, |_, _| {});
     }

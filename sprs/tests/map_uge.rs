@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use sprs::{
     KEY_MAX, Key,
     map::{MapMut, MapRef, SparMap},
@@ -31,7 +32,14 @@ fn insert_all() {
 
 #[test]
 fn delete_all() {
+    const KEY_TMP: usize = KEY_MAX - 1;
+
     let mut map = SparMap::<_, _>::new(KEY_MAX);
+    let vec_a = FULL_RANGE.collect_array::<KEY_MAX>().unwrap();
+    let vec_b = FULL_RANGE
+        .take(Key::MAX as usize - 1)
+        .collect_array::<KEY_TMP>()
+        .unwrap();
 
     let tmp = FULL_RANGE.map(|x| (x, x.to_string())).collect::<Vec<_>>();
     let all = tmp
@@ -39,15 +47,11 @@ fn delete_all() {
         .map(|(k, v)| (*k, v.as_str()))
         .collect::<Vec<_>>();
     map.insert_all(all.clone());
-    map.delete_all(&FULL_RANGE.take(Key::MAX as usize - 1).collect::<Vec<_>>());
+    map.delete_all(&vec_b);
     assert_eq!(map.as_vals(), [all[Key::MAX as usize - 1].1]);
-    map.delete_all(&FULL_RANGE.take(Key::MAX as usize - 1).collect::<Vec<_>>());
+    map.delete_all(&vec_b);
     assert_eq!(map.as_vals(), [all[Key::MAX as usize - 1].1]);
     assert_eq!(map.query_one(Key::MAX - 1), Some(&"65534"));
-    assert_eq!(
-        map.query_all(&FULL_RANGE.collect::<Vec<_>>())
-            .collect::<Vec<_>>(),
-        [&"65534"]
-    );
+    assert_eq!(map.query_all(&vec_a).collect_array::<1>(), Some([&"65534"]));
     assert_eq!(map.len(), 1);
 }

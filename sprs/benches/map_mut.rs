@@ -1,4 +1,5 @@
 use divan::{Bencher, black_box};
+use itertools::Itertools;
 use sprs::{
     KEY_MAX, Key,
     map::{MapMut, SparMap},
@@ -56,7 +57,7 @@ fn delete_all(bencher: Bencher) {
         .map(|(k, v)| (*k, v.as_str()))
         .collect::<Vec<_>>();
     map.insert_all(add);
-    let del = (0..Key::MAX).collect::<Vec<_>>();
+    let del = (0..Key::MAX).collect_array::<KEY_MAX>().unwrap();
 
     bencher.bench(|| {
         let mut map = black_box(map.clone());

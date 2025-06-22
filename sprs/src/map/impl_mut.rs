@@ -96,7 +96,7 @@ where
 
     #[cfg_attr(feature = "inline-more", inline)]
     fn insert_all(&mut self, kv: Vec<(K, V)>) {
-        let (k, v) = self.filter_all_excl(&kv);
+        let (k, v) = self.filter_all_excl(kv);
 
         let len = self.len().as_();
         self.keys.insert_all_seq_uncheck(&k);
