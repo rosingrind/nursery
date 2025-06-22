@@ -45,9 +45,9 @@ where
         assert!(N <= Self::MAX_K);
 
         Self {
-            sparse: unsafe { Box::new_uninit_slice(N).assume_init() },
+            sparse: unsafe { Box::new_uninit_slice(N + 1).assume_init() },
             len: K::zero(),
-            dense: unsafe { Box::new_uninit_slice(N).assume_init() },
+            dense: unsafe { Box::new_uninit_slice(N + 1).assume_init() },
             #[cfg(feature = "bitmask")]
             mask: bitvec::bitbox![0; Self::MAX_K],
         }
@@ -91,6 +91,9 @@ where
 
     #[cfg_attr(feature = "inline-more", inline)]
     pub fn contains(&self, k: K) -> bool {
+        if k.as_() > N {
+            return false;
+        }
         let x = self.sparse[k.as_()];
         #[cfg(not(feature = "bitmask"))]
         {

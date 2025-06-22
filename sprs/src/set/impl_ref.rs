@@ -9,10 +9,10 @@ use num_traits::{AsPrimitive, Unsigned};
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;
 
-use difference::*;
-use intersection::*;
-use symmetric_difference::*;
-use union::*;
+pub(super) use difference::*;
+pub(super) use intersection::*;
+pub(super) use symmetric_difference::*;
+pub(super) use union::*;
 
 use super::SparSet;
 
@@ -29,28 +29,37 @@ where
 
     #[cfg(not(feature = "rayon"))]
     /// A ∩ B
-    fn intersection<'a>(&'a self, other: &'a Self) -> Intersection<'a, K, N>;
+    fn intersection<'a, const M: usize>(
+        &'a self,
+        other: &'a SparSet<K, M>,
+    ) -> Intersection<'a, K, N, M>;
     #[cfg(feature = "rayon")]
     /// A ∩ B (parallel)
     fn intersection(&self, other: &Self) -> impl SetRef;
 
     #[cfg(not(feature = "rayon"))]
     /// A ∪ B
-    fn union<'a>(&'a self, other: &'a Self) -> Union<'a, K, N>;
+    fn union<'a, const M: usize>(&'a self, other: &'a SparSet<K, M>) -> Union<'a, K, N, M>;
     #[cfg(feature = "rayon")]
     /// A ∪ B (parallel)
     fn union(&self, other: &Self) -> impl SetRef;
 
     #[cfg(not(feature = "rayon"))]
     /// A − B
-    fn difference<'a>(&'a self, other: &'a Self) -> Difference<'a, K, N>;
+    fn difference<'a, const M: usize>(
+        &'a self,
+        other: &'a SparSet<K, M>,
+    ) -> Difference<'a, K, N, M>;
     #[cfg(feature = "rayon")]
     /// A − B (parallel)
     fn difference(&self, other: &Self) -> impl SetRef;
 
     #[cfg(not(feature = "rayon"))]
     /// A − B
-    fn symmetric_difference<'a>(&'a self, other: &'a Self) -> SymmetricDifference<'a, K, N>;
+    fn symmetric_difference<'a, const M: usize>(
+        &'a self,
+        other: &'a SparSet<K, M>,
+    ) -> SymmetricDifference<'a, K, N, M>;
 
     fn is_disjoint(&self, other: &Self) -> bool;
 
@@ -75,15 +84,18 @@ where
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
-    fn intersection<'a>(&'a self, other: &'a Self) -> Intersection<'a, K, N> {
-        let (smaller, larger) = if self.len() <= other.len() {
-            (self, other)
-        } else {
-            (other, self)
-        };
+    fn intersection<'a, const M: usize>(
+        &'a self,
+        other: &'a SparSet<K, M>,
+    ) -> Intersection<'a, K, N, M> {
+        // let (smaller, larger) = if self.len() <= other.len() {
+        //     (self, other)
+        // } else {
+        //     (other, self)
+        // };
         Intersection {
-            iter: smaller.iter(),
-            other: larger,
+            iter: self.iter(),
+            other: other,
         }
     }
 
@@ -94,14 +106,14 @@ where
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
-    fn union<'a>(&'a self, other: &'a Self) -> Union<'a, K, N> {
-        let (smaller, larger) = if self.len() <= other.len() {
-            (self, other)
-        } else {
-            (other, self)
-        };
+    fn union<'a, const M: usize>(&'a self, other: &'a SparSet<K, M>) -> Union<'a, K, N, M> {
+        // let (smaller, larger) = if self.len() <= other.len() {
+        //     (self, other)
+        // } else {
+        //     (other, self)
+        // };
         Union {
-            iter: larger.iter().chain(smaller.difference(larger)),
+            iter: other.iter().chain(self.difference(other)),
         }
     }
 
@@ -113,7 +125,10 @@ where
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
-    fn difference<'a>(&'a self, other: &'a Self) -> Difference<'a, K, N> {
+    fn difference<'a, const M: usize>(
+        &'a self,
+        other: &'a SparSet<K, M>,
+    ) -> Difference<'a, K, N, M> {
         Difference {
             iter: self.iter(),
             other,
@@ -128,7 +143,10 @@ where
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
-    fn symmetric_difference<'a>(&'a self, other: &'a Self) -> SymmetricDifference<'a, K, N> {
+    fn symmetric_difference<'a, const M: usize>(
+        &'a self,
+        other: &'a SparSet<K, M>,
+    ) -> SymmetricDifference<'a, K, N, M> {
         SymmetricDifference {
             iter: self.difference(other).chain(other.difference(self)),
         }

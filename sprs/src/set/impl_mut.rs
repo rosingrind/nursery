@@ -83,6 +83,8 @@ where
     }
 
     fn insert_one(&mut self, k: K) -> bool {
+        assert!(k.as_() <= N);
+
         if self.contains(k) {
             return false;
         }

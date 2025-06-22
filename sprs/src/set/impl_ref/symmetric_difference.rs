@@ -2,14 +2,14 @@ use core::fmt;
 use num_traits::{AsPrimitive, Unsigned};
 use std::{fmt::Debug, iter};
 
-pub struct SymmetricDifference<'a, K, const N: usize>
+pub struct SymmetricDifference<'a, K, const N: usize, const M: usize>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
-    pub(super) iter: iter::Chain<super::Difference<'a, K, N>, super::Difference<'a, K, N>>,
+    pub(super) iter: iter::Chain<super::Difference<'a, K, N, M>, super::Difference<'a, K, M, N>>,
 }
 
-impl<K, const N: usize> Clone for SymmetricDifference<'_, K, N>
+impl<K, const N: usize, const M: usize> Clone for SymmetricDifference<'_, K, N, M>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -21,7 +21,7 @@ where
     }
 }
 
-impl<'a, K, const N: usize> Iterator for SymmetricDifference<'a, K, N>
+impl<'a, K, const N: usize, const M: usize> Iterator for SymmetricDifference<'a, K, N, M>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -47,7 +47,7 @@ where
     }
 }
 
-impl<K, const N: usize> fmt::Debug for SymmetricDifference<'_, K, N>
+impl<K, const N: usize, const M: usize> fmt::Debug for SymmetricDifference<'_, K, N, M>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd + Debug,
 {
@@ -56,12 +56,12 @@ where
     }
 }
 
-impl<K, const N: usize> iter::FusedIterator for SymmetricDifference<'_, K, N> where
+impl<K, const N: usize, const M: usize> iter::FusedIterator for SymmetricDifference<'_, K, N, M> where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd
 {
 }
 
-impl<K, const N: usize> iter::ExactSizeIterator for SymmetricDifference<'_, K, N> where
+impl<K, const N: usize, const M: usize> iter::ExactSizeIterator for SymmetricDifference<'_, K, N, M> where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd
 {
 }

@@ -55,12 +55,12 @@ where
     }
 }
 
-impl<K, T, const N: usize, const M: usize> From<[(K, T); M]> for SparMap<K, T, N>
+impl<K, T, const N: usize> From<[(K, T); N]> for SparMap<K, T, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     T: Send + Sync + Copy,
 {
-    fn from(arr: [(K, T); M]) -> Self {
+    fn from(arr: [(K, T); N]) -> Self {
         arr.into_iter().collect()
     }
 }

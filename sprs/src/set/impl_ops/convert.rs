@@ -14,11 +14,11 @@ where
     }
 }
 
-impl<K, const N: usize, const M: usize> From<[K; M]> for SparSet<K, N>
+impl<K, const N: usize> From<[K; N]> for SparSet<K, N>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
-    fn from(arr: [K; M]) -> Self {
+    fn from(arr: [K; N]) -> Self {
         arr.into_iter().collect()
     }
 }

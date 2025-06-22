@@ -4,15 +4,15 @@ use std::{fmt::Debug, iter, slice::Iter};
 
 use crate::set::SparSet;
 
-pub struct Intersection<'a, K, const N: usize>
+pub struct Intersection<'a, K, const N: usize, const M: usize>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
     pub(super) iter: Iter<'a, K>,
-    pub(super) other: &'a SparSet<K, N>,
+    pub(super) other: &'a SparSet<K, M>,
 }
 
-impl<K, const N: usize> Clone for Intersection<'_, K, N>
+impl<K, const N: usize, const M: usize> Clone for Intersection<'_, K, N, M>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -25,7 +25,7 @@ where
     }
 }
 
-impl<'a, K, const N: usize> Iterator for Intersection<'a, K, N>
+impl<'a, K, const N: usize, const M: usize> Iterator for Intersection<'a, K, N, M>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -63,7 +63,7 @@ where
     }
 }
 
-impl<K, const N: usize> fmt::Debug for Intersection<'_, K, N>
+impl<K, const N: usize, const M: usize> fmt::Debug for Intersection<'_, K, N, M>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd + Debug,
 {
@@ -72,12 +72,12 @@ where
     }
 }
 
-impl<K, const N: usize> iter::FusedIterator for Intersection<'_, K, N> where
+impl<K, const N: usize, const M: usize> iter::FusedIterator for Intersection<'_, K, N, M> where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd
 {
 }
 
-impl<K, const N: usize> iter::ExactSizeIterator for Intersection<'_, K, N> where
+impl<K, const N: usize, const M: usize> iter::ExactSizeIterator for Intersection<'_, K, N, M> where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd
 {
 }
