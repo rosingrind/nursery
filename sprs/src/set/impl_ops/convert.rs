@@ -2,28 +2,33 @@ use num_traits::{AsPrimitive, Unsigned};
 
 use crate::set::{SetMut, SparSet};
 
-impl<K, const N: usize> FromIterator<K> for SparSet<K, N>
+impl<K> FromIterator<K> for SparSet<K>
 where
-    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd + Ord,
 {
     #[cfg_attr(feature = "inline-more", inline)]
+    // TODO: get max element from iterator without consuming and construct Self
     fn from_iter<I: IntoIterator<Item = K>>(iter: I) -> Self {
-        let mut set = Self::new();
-        set.extend(iter);
+        let arr: Box<[K]> = iter.into_iter().collect();
+        Self::from(&*arr)
+    }
+}
+
+impl<K> From<&[K]> for SparSet<K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd + Ord,
+{
+    /// Portable [`SparSet::insert_all`] implementation, subject to change
+    fn from(arr: &[K]) -> Self {
+        let mut set = Self::new(dbg!(arr.iter().max().unwrap().as_()));
+        let s = set.filter_all_excl(arr);
+
+        set.insert_all_seq_uncheck(&s);
         set
     }
 }
 
-impl<K, const N: usize> From<[K; N]> for SparSet<K, N>
-where
-    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
-{
-    fn from(arr: [K; N]) -> Self {
-        arr.into_iter().collect()
-    }
-}
-
-impl<K, const N: usize> Extend<K> for SparSet<K, N>
+impl<K> Extend<K> for SparSet<K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -41,7 +46,7 @@ where
     }
 }
 
-impl<'a, K, const N: usize> Extend<&'a K> for SparSet<K, N>
+impl<'a, K> Extend<&'a K> for SparSet<K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {

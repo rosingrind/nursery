@@ -7,7 +7,7 @@ use num_traits::{AsPrimitive, Unsigned};
 
 use super::{SetRef, SparSet};
 
-impl<K, const N: usize> PartialEq for SparSet<K, N>
+impl<K> PartialEq for SparSet<K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -20,12 +20,9 @@ where
     }
 }
 
-impl<K, const N: usize> Eq for SparSet<K, N> where
-    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd
-{
-}
+impl<K> Eq for SparSet<K> where K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd {}
 
-impl<K, const N: usize> Debug for SparSet<K, N>
+impl<K> Debug for SparSet<K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd + Debug,
 {

@@ -7,9 +7,9 @@ use sprs::{
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;
 
-#[divan::bench(threads = [0, 1])]
+#[divan::bench()]
 fn contains(bencher: Bencher) {
-    let mut map = SparMap::<Key, &str, KEY_MAX>::new();
+    let mut map = SparMap::<Key, &str>::new(KEY_MAX);
     map.insert_one(5, "5");
 
     bencher.bench(|| {
@@ -19,9 +19,9 @@ fn contains(bencher: Bencher) {
     });
 }
 
-#[divan::bench(threads = [0, 1])]
+#[divan::bench()]
 fn query_one(bencher: Bencher) {
-    let mut map = SparMap::<Key, &str, KEY_MAX>::new();
+    let mut map = SparMap::<Key, &str>::new(KEY_MAX);
     map.insert_one(5, "5");
 
     bencher.bench(|| {
@@ -31,9 +31,9 @@ fn query_one(bencher: Bencher) {
     });
 }
 
-#[divan::bench(threads = [0, 1])]
+#[divan::bench()]
 fn query_all(bencher: Bencher) {
-    let mut map = SparMap::<Key, &str, KEY_MAX>::new();
+    let mut map = SparMap::<Key, &str>::new(KEY_MAX);
     let vec = (0..Key::MAX).collect::<Vec<_>>();
     let tmp = (0..Key::MAX)
         .map(|x| (x, x.to_string()))

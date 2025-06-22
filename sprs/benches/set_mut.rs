@@ -7,42 +7,48 @@ use sprs::{
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;
 
-#[divan::bench(threads = [0, 1])]
+#[divan::bench()]
 fn insert_one(bencher: Bencher) {
+    let set = SparSet::<Key>::new(KEY_MAX);
+
     bencher.bench(|| {
-        let mut set = black_box(SparSet::<Key, KEY_MAX>::new());
+        let mut set = black_box(set.clone());
         black_box(&mut set).insert_one(black_box(5));
         black_box(&mut set).insert_one(black_box(5));
     });
 }
 
-#[divan::bench(threads = [0, 1])]
+#[divan::bench()]
 fn insert_all(bencher: Bencher) {
     let vec = (0..Key::MAX).collect::<Vec<_>>();
+    let set = SparSet::<Key>::new(KEY_MAX);
 
     bencher.bench(|| {
-        let mut set = black_box(SparSet::<Key, KEY_MAX>::new());
+        let mut set = black_box(set.clone());
         black_box(&mut set).insert_all(black_box(vec.clone()));
         black_box(&mut set).insert_all(black_box(vec.clone()));
     });
 }
 
-#[divan::bench(threads = [0, 1])]
+#[divan::bench()]
 fn delete_one(bencher: Bencher) {
+    let set = SparSet::<Key>::new(KEY_MAX);
+
     bencher.bench(|| {
-        let mut set = black_box(SparSet::<Key, KEY_MAX>::new());
+        let mut set = black_box(set.clone());
         black_box(&mut set).insert_one(black_box(5));
         black_box(&mut set).delete_one(black_box(5));
         black_box(&mut set).delete_one(black_box(5));
     });
 }
 
-#[divan::bench(threads = [0, 1])]
+#[divan::bench()]
 fn delete_all(bencher: Bencher) {
     let vec = (0..Key::MAX).collect::<Vec<_>>();
+    let set = SparSet::<Key>::new(KEY_MAX);
 
     bencher.bench(|| {
-        let mut set = black_box(SparSet::<Key, KEY_MAX>::new());
+        let mut set = black_box(set.clone());
         black_box(&mut set).insert_all(vec.clone());
         black_box(&mut set).delete_all(black_box(vec.clone()));
     });

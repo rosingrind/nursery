@@ -7,11 +7,11 @@ use crate::set::{
     impl_ref::{Difference, Intersection, SymmetricDifference, Union},
 };
 
-impl<'a, K, const N: usize, const M: usize> BitOr<&'a SparSet<K, M>> for &'a SparSet<K, N>
+impl<'a, K> BitOr<&'a SparSet<K>> for &'a SparSet<K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
-    type Output = Union<'a, K, N, M>;
+    type Output = Union<'a, K>;
 
     /// Returns the union of `self` and `rhs` as a new `SparSet`.
     ///
@@ -20,8 +20,8 @@ where
     /// ```
     /// use sprs::set::SparSet;
     ///
-    /// let a: SparSet<u16, 3> = vec![1, 2, 3].into_iter().collect();
-    /// let b: SparSet<u16, 5> = vec![3, 4, 5].into_iter().collect();
+    /// let a: SparSet<u16> = From::from([1, 2, 3].as_slice());
+    /// let b: SparSet<u16> = From::from([3, 4, 5].as_slice());
     ///
     /// let set = &a | &b;
     ///
@@ -33,16 +33,16 @@ where
     /// }
     /// assert_eq!(i, expected.len());
     /// ```
-    fn bitor(self, rhs: &'a SparSet<K, M>) -> Self::Output {
+    fn bitor(self, rhs: &'a SparSet<K>) -> Self::Output {
         self.union(rhs)
     }
 }
 
-impl<'a, K, const N: usize, const M: usize> BitAnd<&'a SparSet<K, M>> for &'a SparSet<K, N>
+impl<'a, K> BitAnd<&'a SparSet<K>> for &'a SparSet<K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
-    type Output = Intersection<'a, K, N, M>;
+    type Output = Intersection<'a, K>;
 
     /// Returns the intersection of `self` and `rhs` as a new `SparSet`.
     ///
@@ -51,8 +51,8 @@ where
     /// ```
     /// use sprs::set::SparSet;
     ///
-    /// let a: SparSet<u16, 3> = vec![1, 2, 3].into_iter().collect();
-    /// let b: SparSet<u16, 4> = vec![2, 3, 4].into_iter().collect();
+    /// let a: SparSet<u16> = From::from([1, 2, 3].as_slice());
+    /// let b: SparSet<u16> = From::from([2, 3, 4].as_slice());
     ///
     /// let set = &a & &b;
     ///
@@ -64,16 +64,16 @@ where
     /// }
     /// assert_eq!(i, expected.len());
     /// ```
-    fn bitand(self, rhs: &'a SparSet<K, M>) -> Self::Output {
+    fn bitand(self, rhs: &'a SparSet<K>) -> Self::Output {
         self.intersection(rhs)
     }
 }
 
-impl<'a, K, const N: usize, const M: usize> BitXor<&'a SparSet<K, M>> for &'a SparSet<K, N>
+impl<'a, K> BitXor<&'a SparSet<K>> for &'a SparSet<K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
-    type Output = SymmetricDifference<'a, K, N, M>;
+    type Output = SymmetricDifference<'a, K>;
 
     /// Returns the symmetric difference of `self` and `rhs` as a new `SparSet`.
     ///
@@ -82,8 +82,8 @@ where
     /// ```
     /// use sprs::set::SparSet;
     ///
-    /// let a: SparSet<u16, 3> = vec![1, 2, 3].into_iter().collect();
-    /// let b: SparSet<u16, 5> = vec![3, 4, 5].into_iter().collect();
+    /// let a: SparSet<u16> = From::from([1, 2, 3].as_slice());
+    /// let b: SparSet<u16> = From::from([3, 4, 5].as_slice());
     ///
     /// let set = &a ^ &b;
     ///
@@ -95,16 +95,16 @@ where
     /// }
     /// assert_eq!(i, expected.len());
     /// ```
-    fn bitxor(self, rhs: &'a SparSet<K, M>) -> Self::Output {
+    fn bitxor(self, rhs: &'a SparSet<K>) -> Self::Output {
         self.symmetric_difference(rhs)
     }
 }
 
-impl<'a, K, const N: usize, const M: usize> Sub<&'a SparSet<K, M>> for &'a SparSet<K, N>
+impl<'a, K> Sub<&'a SparSet<K>> for &'a SparSet<K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
-    type Output = Difference<'a, K, N, M>;
+    type Output = Difference<'a, K>;
 
     /// Returns the difference of `self` and `rhs` as a new `SparSet`.
     ///
@@ -113,8 +113,8 @@ where
     /// ```
     /// use sprs::set::SparSet;
     ///
-    /// let a: SparSet<u16, 3> = vec![1, 2, 3].into_iter().collect();
-    /// let b: SparSet<u16, 5> = vec![3, 4, 5].into_iter().collect();
+    /// let a: SparSet<u16> = From::from([1, 2, 3].as_slice());
+    /// let b: SparSet<u16> = From::from([3, 4, 5].as_slice());
     ///
     /// let set = &a - &b;
     ///
@@ -126,12 +126,12 @@ where
     /// }
     /// assert_eq!(i, expected.len());
     /// ```
-    fn sub(self, rhs: &'a SparSet<K, M>) -> Self::Output {
+    fn sub(self, rhs: &'a SparSet<K>) -> Self::Output {
         self.difference(rhs)
     }
 }
 
-impl<'a, K, const N: usize, const M: usize> BitOrAssign<&'a SparSet<K, M>> for SparSet<K, N>
+impl<'a, K> BitOrAssign<&'a SparSet<K>> for SparSet<K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -142,8 +142,8 @@ where
     /// ```
     /// use sprs::set::SparSet;
     ///
-    /// let mut a: SparSet<u16, 5> = vec![1, 2, 3].into_iter().collect();
-    /// let b: SparSet<u16, 5> = vec![3, 4, 5].into_iter().collect();
+    /// let mut a: SparSet<u16> = From::from([3, 4, 5].as_slice());
+    /// let b: SparSet<u16> = From::from([1, 2, 3].as_slice());
     ///
     /// a |= &b;
     ///
@@ -155,8 +155,19 @@ where
     /// }
     /// assert_eq!(i, expected.len());
     /// ```
-    fn bitor_assign(&mut self, rhs: &'a SparSet<K, M>) {
-        assert!(N >= M);
+    ///
+    /// Notice that this panics with `index out of bounds: the len is 4 but the index is 4`:
+    ///
+    /// ```should_panic
+    /// # use sprs::set::SparSet;
+    /// #
+    /// let a: SparSet<u16> = From::from([3, 4, 5].as_slice());
+    /// let mut b: SparSet<u16> = From::from([1, 2, 3].as_slice());
+    ///
+    /// b |= &a;
+    /// ```
+    fn bitor_assign(&mut self, rhs: &'a SparSet<K>) {
+        assert!(self.sparse.len() >= rhs.sparse.len());
         for item in rhs.iter().copied() {
             if !self.contains(item) {
                 self.insert_one(item);
@@ -165,7 +176,7 @@ where
     }
 }
 
-impl<'a, K, const N: usize, const M: usize> BitAndAssign<&'a SparSet<K, M>> for SparSet<K, N>
+impl<'a, K> BitAndAssign<&'a SparSet<K>> for SparSet<K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -176,8 +187,8 @@ where
     /// ```
     /// use sprs::set::SparSet;
     ///
-    /// let mut a: SparSet<u16, 3> = vec![1, 2, 3].into_iter().collect();
-    /// let b: SparSet<u16, 4> = vec![2, 3, 4].into_iter().collect();
+    /// let mut a: SparSet<u16> = From::from([1, 2, 3].as_slice());
+    /// let b: SparSet<u16> = From::from([2, 3, 4].as_slice());
     ///
     /// a &= &b;
     ///
@@ -189,12 +200,12 @@ where
     /// }
     /// assert_eq!(i, expected.len());
     /// ```
-    fn bitand_assign(&mut self, rhs: &'a SparSet<K, M>) {
+    fn bitand_assign(&mut self, rhs: &'a SparSet<K>) {
         self.retain(|&item| rhs.contains(item));
     }
 }
 
-impl<'a, K, const N: usize, const M: usize> BitXorAssign<&'a SparSet<K, M>> for SparSet<K, N>
+impl<'a, K> BitXorAssign<&'a SparSet<K>> for SparSet<K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -205,8 +216,8 @@ where
     /// ```
     /// use sprs::set::SparSet;
     ///
-    /// let mut a: SparSet<u16, 5> = vec![1, 2, 3].into_iter().collect();
-    /// let b: SparSet<u16, 5> = vec![3, 4, 5].into_iter().collect();
+    /// let mut a: SparSet<u16> = From::from([3, 4, 5].as_slice());
+    /// let b: SparSet<u16> = From::from([1, 2, 3].as_slice());
     ///
     /// a ^= &b;
     ///
@@ -218,8 +229,19 @@ where
     /// }
     /// assert_eq!(i, expected.len());
     /// ```
-    fn bitxor_assign(&mut self, rhs: &'a SparSet<K, M>) {
-        assert!(N >= M);
+    ///
+    /// Notice that this panics with `index out of bounds: the len is 4 but the index is 4`:
+    ///
+    /// ```should_panic
+    /// # use sprs::set::SparSet;
+    /// #
+    /// let a: SparSet<u16> = From::from([3, 4, 5].as_slice());
+    /// let mut b: SparSet<u16> = From::from([1, 2, 3].as_slice());
+    ///
+    /// b ^= &a;
+    /// ```
+    fn bitxor_assign(&mut self, rhs: &'a SparSet<K>) {
+        assert!(self.sparse.len() >= rhs.sparse.len());
         for item in rhs.iter().copied() {
             if !self.contains(item) {
                 self.insert_one(item);
@@ -230,7 +252,7 @@ where
     }
 }
 
-impl<'a, K, const N: usize, const M: usize> SubAssign<&'a SparSet<K, M>> for SparSet<K, N>
+impl<'a, K> SubAssign<&'a SparSet<K>> for SparSet<K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -241,8 +263,8 @@ where
     /// ```
     /// use sprs::set::SparSet;
     ///
-    /// let mut a: SparSet<u16, 3> = vec![1, 2, 3].into_iter().collect();
-    /// let b: SparSet<u16, 5> = vec![3, 4, 5].into_iter().collect();
+    /// let mut a: SparSet<u16> = From::from([1, 2, 3].as_slice());
+    /// let b: SparSet<u16> = From::from([3, 4, 5].as_slice());
     ///
     /// a -= &b;
     ///
@@ -254,7 +276,7 @@ where
     /// }
     /// assert_eq!(i, expected.len());
     /// ```
-    fn sub_assign(&mut self, rhs: &'a SparSet<K, M>) {
+    fn sub_assign(&mut self, rhs: &'a SparSet<K>) {
         if rhs.len() < self.len() {
             for item in rhs.iter().copied() {
                 self.delete_one(item);

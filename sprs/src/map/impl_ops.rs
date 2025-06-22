@@ -7,10 +7,10 @@ use num_traits::{AsPrimitive, Unsigned};
 
 use super::{SparMap, impl_mut::MapMut, impl_ref::MapRef};
 
-impl<K, T, const N: usize> PartialEq for SparMap<K, T, N>
+impl<K, V> PartialEq for SparMap<K, V>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
-    T: Send + Sync + Copy + PartialEq,
+    V: Send + Sync + Copy + PartialEq,
 {
     fn eq(&self, other: &Self) -> bool {
         if self.len() != other.len() {
@@ -25,53 +25,56 @@ where
     }
 }
 
-impl<K, T, const N: usize> Eq for SparMap<K, T, N>
+impl<K, V> Eq for SparMap<K, V>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
-    T: Send + Sync + Copy + PartialEq,
+    V: Send + Sync + Copy + PartialEq,
 {
 }
 
-impl<K, T, const N: usize> Debug for SparMap<K, T, N>
+impl<K, V> Debug for SparMap<K, V>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd + Debug,
-    T: Send + Sync + Copy + Debug,
+    V: Send + Sync + Copy + Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_map().entries(self.iter()).finish()
     }
 }
 
-impl<K, T, const N: usize> FromIterator<(K, T)> for SparMap<K, T, N>
+impl<K, V> FromIterator<(K, V)> for SparMap<K, V>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
-    T: Send + Sync + Copy,
+    V: Send + Sync + Copy,
 {
     #[cfg_attr(feature = "inline-more", inline)]
-    fn from_iter<I: IntoIterator<Item = (K, T)>>(iter: I) -> Self {
-        let mut set = Self::new();
-        set.extend(iter);
-        set
+    fn from_iter<I: IntoIterator<Item = (K, V)>>(iter: I) -> Self {
+        let iter = iter.into_iter();
+        let (lower, upper) = iter.size_hint();
+
+        let mut map = Self::new(upper.unwrap_or(lower));
+        map.extend(iter);
+        map
     }
 }
 
-impl<K, T, const N: usize> From<[(K, T); N]> for SparMap<K, T, N>
+impl<K, V> From<&[(K, V)]> for SparMap<K, V>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
-    T: Send + Sync + Copy,
+    V: Send + Sync + Copy,
 {
-    fn from(arr: [(K, T); N]) -> Self {
-        arr.into_iter().collect()
+    fn from(arr: &[(K, V)]) -> Self {
+        arr.into_iter().cloned().collect()
     }
 }
 
-impl<K, T, const N: usize> Extend<(K, T)> for SparMap<K, T, N>
+impl<K, V> Extend<(K, V)> for SparMap<K, V>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
-    T: Send + Sync + Copy,
+    V: Send + Sync + Copy,
 {
     #[cfg_attr(feature = "inline-more", inline)]
-    fn extend<I: IntoIterator<Item = (K, T)>>(&mut self, iter: I) {
+    fn extend<I: IntoIterator<Item = (K, V)>>(&mut self, iter: I) {
         iter.into_iter().for_each(|(k, v)| {
             self.insert_one(k, v);
         });
@@ -79,54 +82,54 @@ where
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(feature = "nightly")]
-    fn extend_one(&mut self, (k, v): (K, T)) {
+    fn extend_one(&mut self, (k, v): (K, V)) {
         self.insert_one(k, v);
     }
 }
 
-impl<'a, K, T, const N: usize> Extend<(&'a K, &'a T)> for SparMap<K, T, N>
+impl<'a, K, V> Extend<(&'a K, &'a V)> for SparMap<K, V>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
-    T: Send + Sync + Copy,
+    V: Send + Sync + Copy,
 {
     #[cfg_attr(feature = "inline-more", inline)]
-    fn extend<I: IntoIterator<Item = (&'a K, &'a T)>>(&mut self, iter: I) {
+    fn extend<I: IntoIterator<Item = (&'a K, &'a V)>>(&mut self, iter: I) {
         self.extend(iter.into_iter().map(|(&key, &value)| (key, value)));
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(feature = "nightly")]
-    fn extend_one(&mut self, (k, v): (&'a K, &'a T)) {
+    fn extend_one(&mut self, (k, v): (&'a K, &'a V)) {
         self.insert_one(*k, *v);
     }
 }
 
-impl<'a, K, T, const N: usize> Extend<&'a (K, T)> for SparMap<K, T, N>
+impl<'a, K, V> Extend<&'a (K, V)> for SparMap<K, V>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
-    T: Send + Sync + Copy,
+    V: Send + Sync + Copy,
 {
     #[cfg_attr(feature = "inline-more", inline)]
-    fn extend<I: IntoIterator<Item = &'a (K, T)>>(&mut self, iter: I) {
+    fn extend<I: IntoIterator<Item = &'a (K, V)>>(&mut self, iter: I) {
         self.extend(iter.into_iter().map(|&(key, value)| (key, value)));
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(feature = "nightly")]
-    fn extend_one(&mut self, &(k, v): &'a (K, T)) {
+    fn extend_one(&mut self, &(k, v): &'a (K, V)) {
         self.insert_one(k, v);
     }
 }
 
-impl<K, T, const N: usize> Index<K> for SparMap<K, T, N>
+impl<K, V> Index<K> for SparMap<K, V>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
-    T: Send + Sync + Copy,
+    V: Send + Sync + Copy,
 {
-    type Output = T;
+    type Output = V;
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn index(&self, key: K) -> &T {
+    fn index(&self, key: K) -> &V {
         self.query_one(key).expect("no entry found for key")
     }
 }

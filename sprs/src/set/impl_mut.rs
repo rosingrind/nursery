@@ -6,7 +6,7 @@ use recall::*;
 
 use super::{SetRef, SparSet};
 
-pub trait SetMut<K, const N: usize>
+pub trait SetMut<K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -21,7 +21,7 @@ where
     ///
     /// Removes entries specified by predicate and returns
     /// an iterator over deleted values
-    fn recall<F>(&mut self, f: F) -> Recall<'_, K, N, F>
+    fn recall<F>(&mut self, f: F) -> Recall<'_, K, F>
     where
         F: Fn(&K) -> bool;
 
@@ -31,16 +31,16 @@ where
     /// Batched insert operation
     ///
     /// Returns existing's owned value vec
-    fn insert_all(&mut self, k: Vec<K>);
+    fn insert_all(&mut self, k: Vec<K>); // TODO: replace with &[K]
 
     /// Delete entry and return operation's result
     fn delete_one(&mut self, k: K) -> bool;
 
     /// Batched delete operation
-    fn delete_all(&mut self, k: Vec<K>);
+    fn delete_all(&mut self, k: Vec<K>); // TODO: replace with &[K]
 }
 
-impl<K, const N: usize> SetMut<K, N> for SparSet<K, N>
+impl<K> SetMut<K> for SparSet<K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -68,7 +68,7 @@ where
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn recall<F>(&mut self, f: F) -> Recall<'_, K, N, F>
+    fn recall<F>(&mut self, f: F) -> Recall<'_, K, F>
     where
         F: Fn(&K) -> bool,
     {
@@ -83,7 +83,7 @@ where
     }
 
     fn insert_one(&mut self, k: K) -> bool {
-        assert!(k.as_() <= N);
+        assert!(k.as_() <= self.sparse.len());
 
         if self.contains(k) {
             return false;

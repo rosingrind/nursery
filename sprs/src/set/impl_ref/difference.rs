@@ -4,15 +4,15 @@ use std::{fmt::Debug, iter, slice::Iter};
 
 use crate::set::SparSet;
 
-pub struct Difference<'a, K, const N: usize, const M: usize>
+pub struct Difference<'a, K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
     pub(super) iter: Iter<'a, K>,
-    pub(super) other: &'a SparSet<K, M>,
+    pub(super) other: &'a SparSet<K>,
 }
 
-impl<K, const N: usize, const M: usize> Clone for Difference<'_, K, N, M>
+impl<K> Clone for Difference<'_, K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -25,7 +25,7 @@ where
     }
 }
 
-impl<'a, K, const N: usize, const M: usize> Iterator for Difference<'a, K, N, M>
+impl<'a, K> Iterator for Difference<'a, K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -63,7 +63,7 @@ where
     }
 }
 
-impl<K, const N: usize, const M: usize> fmt::Debug for Difference<'_, K, N, M>
+impl<K> fmt::Debug for Difference<'_, K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd + Debug,
 {
@@ -72,12 +72,12 @@ where
     }
 }
 
-impl<K, const N: usize, const M: usize> iter::FusedIterator for Difference<'_, K, N, M> where
+impl<K> iter::FusedIterator for Difference<'_, K> where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd
 {
 }
 
-impl<K, const N: usize, const M: usize> iter::ExactSizeIterator for Difference<'_, K, N, M> where
+impl<K> iter::ExactSizeIterator for Difference<'_, K> where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd
 {
 }

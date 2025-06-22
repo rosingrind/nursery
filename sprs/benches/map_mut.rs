@@ -4,9 +4,9 @@ use sprs::{
     map::{MapMut, SparMap},
 };
 
-#[divan::bench(threads = [0, 1])]
+#[divan::bench()]
 fn insert_one(bencher: Bencher) {
-    let map = SparMap::<Key, &str, KEY_MAX>::new();
+    let map = SparMap::<Key, &str>::new(KEY_MAX);
 
     bencher.bench(|| {
         let mut map = black_box(map.clone());
@@ -15,9 +15,9 @@ fn insert_one(bencher: Bencher) {
     });
 }
 
-#[divan::bench(threads = [0, 1])]
+#[divan::bench()]
 fn insert_all(bencher: Bencher) {
-    let map = SparMap::<Key, &str, KEY_MAX>::new();
+    let map = SparMap::<Key, &str>::new(KEY_MAX);
     let tmp = (0..Key::MAX)
         .map(|x| (x, x.to_string()))
         .collect::<Vec<_>>();
@@ -33,9 +33,9 @@ fn insert_all(bencher: Bencher) {
     });
 }
 
-#[divan::bench(threads = [0, 1])]
+#[divan::bench()]
 fn delete_one(bencher: Bencher) {
-    let mut map = SparMap::<Key, &str, KEY_MAX>::new();
+    let mut map = SparMap::<Key, &str>::new(KEY_MAX);
     map.insert_one(5, "5");
 
     bencher.bench(|| {
@@ -45,9 +45,9 @@ fn delete_one(bencher: Bencher) {
     });
 }
 
-#[divan::bench(threads = [0, 1])]
+#[divan::bench()]
 fn delete_all(bencher: Bencher) {
-    let mut map = SparMap::<Key, &str, KEY_MAX>::new();
+    let mut map = SparMap::<Key, &str>::new(KEY_MAX);
     let tmp = (0..Key::MAX)
         .map(|x| (x, x.to_string()))
         .collect::<Vec<_>>();

@@ -8,7 +8,7 @@ use crate::set::SetMut;
 
 use super::{MapRef, SparMap};
 
-pub trait MapMut<K, T, const N: usize>
+pub trait MapMut<K, V>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -17,33 +17,33 @@ where
     /// Retain entries specified by predicate
     fn retain<F>(&mut self, f: F)
     where
-        F: Fn(&K, &T) -> bool;
+        F: Fn(&K, &V) -> bool;
 
     /// Lazy recall operation
     ///
     /// Removes entries specified by predicate and returns
     /// an iterator over deleted's values
-    fn recall<F>(&mut self, f: F) -> Recall<'_, K, T, N, F>
+    fn recall<F>(&mut self, f: F) -> Recall<'_, K, V, F>
     where
-        F: Fn(&K, &T) -> bool;
+        F: Fn(&K, &V) -> bool;
 
     /// Insert entry or return old value if existed
-    fn insert_one(&mut self, k: K, v: T) -> Option<T>;
+    fn insert_one(&mut self, k: K, v: V) -> Option<V>;
 
     /// Batched insert operation
-    fn insert_all(&mut self, kv: Vec<(K, T)>);
+    fn insert_all(&mut self, kv: Vec<(K, V)>);
 
     /// Delete entry and return it's value if deleted
-    fn delete_one(&mut self, k: K) -> Option<T>;
+    fn delete_one(&mut self, k: K) -> Option<V>;
 
     /// Batched delete operation
     fn delete_all(&mut self, k: &[K]);
 }
 
-impl<K, T, const N: usize> MapMut<K, T, N> for SparMap<K, T, N>
+impl<K, V> MapMut<K, V> for SparMap<K, V>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
-    T: Send + Sync + Copy,
+    V: Send + Sync + Copy,
 {
     #[cfg_attr(feature = "inline-more", inline)]
     fn clear(&mut self) {
@@ -53,7 +53,7 @@ where
     #[cfg_attr(feature = "inline-more", inline)]
     fn retain<F>(&mut self, f: F)
     where
-        F: Fn(&K, &T) -> bool,
+        F: Fn(&K, &V) -> bool,
     {
         let mut vec = Vec::with_capacity(self.len().as_());
         for (k, v) in self.iter() {
@@ -65,9 +65,9 @@ where
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn recall<F>(&mut self, f: F) -> Recall<'_, K, T, N, F>
+    fn recall<F>(&mut self, f: F) -> Recall<'_, K, V, F>
     where
-        F: Fn(&K, &T) -> bool,
+        F: Fn(&K, &V) -> bool,
     {
         Recall {
             f,
@@ -83,7 +83,7 @@ where
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn insert_one(&mut self, k: K, v: T) -> Option<T> {
+    fn insert_one(&mut self, k: K, v: V) -> Option<V> {
         if !self.keys.insert_one(k) {
             let k = self.keys.as_index_one(k).unwrap();
             let old = self.vals[k.as_()];
@@ -95,7 +95,7 @@ where
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn insert_all(&mut self, kv: Vec<(K, T)>) {
+    fn insert_all(&mut self, kv: Vec<(K, V)>) {
         let (k, v) = self.filter_all_excl(&kv);
 
         let len = self.len().as_();
@@ -104,7 +104,7 @@ where
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn delete_one(&mut self, k: K) -> Option<T> {
+    fn delete_one(&mut self, k: K) -> Option<V> {
         self.contains(k).then(|| {
             self.keys
                 .delete_one_seq_uncheck(k, |k, l| self.vals.swap(k.as_(), l.as_()));

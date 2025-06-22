@@ -2,7 +2,7 @@ use divan::{Bencher, black_box};
 use sparsey::World;
 use sprs::Key;
 
-#[divan::bench(threads = [0, 1])]
+#[divan::bench()]
 fn insert_one(bencher: Bencher) {
     bencher.bench(|| {
         let mut map = black_box(World::builder().register::<&str>().build());
@@ -11,7 +11,7 @@ fn insert_one(bencher: Bencher) {
     });
 }
 
-#[divan::bench(threads = [0, 1])]
+#[divan::bench()]
 fn insert_all(bencher: Bencher) {
     let tmp = (0..Key::MAX)
         .map(|x| (x.to_string().into_boxed_str(),))
@@ -23,7 +23,7 @@ fn insert_all(bencher: Bencher) {
     });
 }
 
-#[divan::bench(threads = [0, 1])]
+#[divan::bench()]
 fn delete_one(bencher: Bencher) {
     bencher.bench(|| {
         let mut map = black_box(World::builder().register::<&str>().build());
@@ -33,7 +33,7 @@ fn delete_one(bencher: Bencher) {
     });
 }
 
-#[divan::bench(threads = [0, 1])]
+#[divan::bench()]
 fn delete_all(bencher: Bencher) {
     let tmp = (0..Key::MAX).map(|x| x.to_string()).collect::<Vec<_>>();
 

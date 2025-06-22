@@ -10,7 +10,7 @@ const FULL_RANGE: std::ops::Range<Key> = 0..Key::MAX;
 
 #[test]
 fn insert_all() {
-    let mut map = SparMap::<_, _, KEY_MAX>::new();
+    let mut map = SparMap::<_, _>::new(KEY_MAX);
 
     let tmp = FULL_RANGE.map(|x| (x, x.to_string())).collect::<Vec<_>>();
     let all = tmp
@@ -31,7 +31,7 @@ fn insert_all() {
 
 #[test]
 fn delete_all() {
-    let mut map = SparMap::<_, _, KEY_MAX>::new();
+    let mut map = SparMap::<_, _>::new(KEY_MAX);
 
     let tmp = FULL_RANGE.map(|x| (x, x.to_string())).collect::<Vec<_>>();
     let all = tmp

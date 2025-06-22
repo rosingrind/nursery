@@ -2,11 +2,11 @@ use crate::{KEY_MAX, Key};
 
 use super::*;
 
-type MockSet = SparSet<Key, KEY_MAX>;
+type MockSet = SparSet<Key>;
 
 #[test]
 fn regular_ops() {
-    let mut set = MockSet::new();
+    let mut set = MockSet::new(KEY_MAX);
 
     assert_eq!(set.dense[..set.len as usize], []);
     assert_eq!(set.as_slice(), &[]);
@@ -70,8 +70,8 @@ fn regular_ops() {
 
 #[test]
 fn compare_ops() {
-    let mut a = MockSet::new();
-    let mut b = MockSet::new();
+    let mut a = MockSet::new(KEY_MAX);
+    let mut b = MockSet::new(KEY_MAX);
 
     a.insert_all(vec![5, 2]);
     b.insert_all(vec![5, 3]);
@@ -133,7 +133,7 @@ fn compare_ops() {
 
 #[test]
 fn batched_ops() {
-    let mut set = MockSet::new();
+    let mut set = MockSet::new(KEY_MAX);
 
     set.insert_all(vec![4, 5, 6, 7]);
     assert_eq!(set.as_slice(), [4, 5, 6, 7]);
@@ -161,13 +161,13 @@ fn batched_ops() {
 fn test_zero_capacities() {
     type HS = MockSet;
 
-    let s = HS::new();
+    let s = HS::new(KEY_MAX);
     assert_eq!(s.len(), 0);
 
     let s = HS::default();
     assert_eq!(s.len(), 0);
 
-    let mut s = HS::new();
+    let mut s = HS::new(KEY_MAX);
     s.insert_one(1);
     s.insert_one(2);
     s.delete_one(1);
@@ -177,8 +177,8 @@ fn test_zero_capacities() {
 
 #[test]
 fn test_disjoint() {
-    let mut xs = MockSet::new();
-    let mut ys = MockSet::new();
+    let mut xs = MockSet::new(KEY_MAX);
+    let mut ys = MockSet::new(KEY_MAX);
     assert!(xs.is_disjoint(&ys));
     assert!(ys.is_disjoint(&xs));
     assert!(xs.insert_one(5));
@@ -198,13 +198,13 @@ fn test_disjoint() {
 
 #[test]
 fn test_subset_and_superset() {
-    let mut a = MockSet::new();
+    let mut a = MockSet::new(KEY_MAX);
     assert!(a.insert_one(0));
     assert!(a.insert_one(5));
     assert!(a.insert_one(11));
     assert!(a.insert_one(7));
 
-    let mut b = MockSet::new();
+    let mut b = MockSet::new(KEY_MAX);
     assert!(b.insert_one(0));
     assert!(b.insert_one(7));
     assert!(b.insert_one(19));
@@ -227,7 +227,7 @@ fn test_subset_and_superset() {
 
 #[test]
 fn test_iterate() {
-    let mut a = MockSet::new();
+    let mut a = MockSet::new(KEY_MAX);
     for i in 0..32 {
         assert!(a.insert_one(i));
     }
@@ -240,8 +240,8 @@ fn test_iterate() {
 
 #[test]
 fn test_intersection() {
-    let mut a = MockSet::new();
-    let mut b = MockSet::new();
+    let mut a = MockSet::new(KEY_MAX);
+    let mut b = MockSet::new(KEY_MAX);
 
     assert!(a.insert_one(11));
     assert!(a.insert_one(1));
@@ -267,8 +267,8 @@ fn test_intersection() {
 
 #[test]
 fn test_difference() {
-    let mut a = MockSet::new();
-    let mut b = MockSet::new();
+    let mut a = MockSet::new(KEY_MAX);
+    let mut b = MockSet::new(KEY_MAX);
 
     assert!(a.insert_one(1));
     assert!(a.insert_one(3));
@@ -290,8 +290,8 @@ fn test_difference() {
 
 #[test]
 fn test_symmetric_difference() {
-    let mut a = MockSet::new();
-    let mut b = MockSet::new();
+    let mut a = MockSet::new(KEY_MAX);
+    let mut b = MockSet::new(KEY_MAX);
 
     assert!(a.insert_one(1));
     assert!(a.insert_one(3));
@@ -315,8 +315,8 @@ fn test_symmetric_difference() {
 
 #[test]
 fn test_union() {
-    let mut a = MockSet::new();
-    let mut b = MockSet::new();
+    let mut a = MockSet::new(KEY_MAX);
+    let mut b = MockSet::new(KEY_MAX);
 
     assert!(a.insert_one(1));
     assert!(a.insert_one(3));
@@ -358,7 +358,7 @@ fn test_from_iter() {
 #[test]
 fn test_move_iter() {
     let hs = {
-        let mut hs = MockSet::new();
+        let mut hs = MockSet::new(KEY_MAX);
 
         hs.insert_one(1);
         hs.insert_one(2);
@@ -374,13 +374,13 @@ fn test_move_iter() {
 fn test_eq() {
     // These constants once happened to expose a bug in insert_one().
     // I'm keeping them around to prevent a regression.
-    let mut s1 = MockSet::new();
+    let mut s1 = MockSet::new(KEY_MAX);
 
     s1.insert_one(1);
     s1.insert_one(2);
     s1.insert_one(3);
 
-    let mut s2 = MockSet::new();
+    let mut s2 = MockSet::new(KEY_MAX);
 
     s2.insert_one(1);
     s2.insert_one(2);
@@ -394,8 +394,8 @@ fn test_eq() {
 
 #[test]
 fn test_show() {
-    let mut set = MockSet::new();
-    let empty = MockSet::new();
+    let mut set = MockSet::new(KEY_MAX);
+    let empty = MockSet::new(KEY_MAX);
 
     set.insert_one(1);
     set.insert_one(2);
@@ -409,7 +409,7 @@ fn test_show() {
 #[test]
 #[allow(clippy::needless_borrow)]
 fn test_extend_ref() {
-    let mut a = MockSet::new();
+    let mut a = MockSet::new(KEY_MAX);
     a.insert_one(1);
 
     a.extend([2, 3, 4]);
@@ -420,7 +420,7 @@ fn test_extend_ref() {
     assert!(a.contains(3));
     assert!(a.contains(4));
 
-    let mut b = MockSet::new();
+    let mut b = MockSet::new(KEY_MAX);
     b.insert_one(5);
     b.insert_one(6);
 
@@ -437,8 +437,8 @@ fn test_extend_ref() {
 
 #[test]
 fn test_retain() {
-    let xs = [1, 2, 3, 4, 5, 6];
-    let mut set: MockSet = xs.iter().copied().collect();
+    const XS: [Key; 6] = [1, 2, 3, 4, 5, 6];
+    let mut set: MockSet = From::from(XS.as_slice());
     set.retain(|&k| k % 2 == 0);
     assert_eq!(set.len(), 3);
     assert!(set.contains(2));
@@ -448,8 +448,9 @@ fn test_retain() {
 
 #[test]
 fn test_recall() {
+    const XS: std::ops::Range<Key> = 0..8;
     {
-        let mut set: MockSet = (0..8).collect();
+        let mut set: MockSet = From::from(XS.collect::<Vec<_>>().as_slice());
         let drained = set.recall(|&k| k % 2 == 0);
         let mut out = drained.collect::<Vec<_>>();
         out.sort_unstable();
@@ -458,7 +459,7 @@ fn test_recall() {
         assert_eq!(set.len(), 4);
     }
     {
-        let mut set: MockSet = (0..8).collect();
+        let mut set: MockSet = From::from(XS.collect::<Vec<_>>().as_slice());
         set.recall(|&k| k % 2 == 0).for_each(drop);
         assert_eq!(set.len(), 4, "Removes non-matching items on drop");
     }
@@ -466,7 +467,7 @@ fn test_recall() {
 
 #[test]
 fn rehash_in_place() {
-    let mut set = MockSet::new();
+    let mut set = MockSet::new(KEY_MAX);
 
     for i in 0..224 {
         set.insert_one(i);
@@ -493,7 +494,7 @@ fn collect() {
 
 #[test]
 fn duplicate_insert_one() {
-    let mut set = MockSet::new();
+    let mut set = MockSet::new(KEY_MAX);
     set.insert_one(1);
     set.insert_one(1);
     assert!([1].iter().eq(set.iter()));

@@ -15,7 +15,7 @@ pub use impl_ref::SetRef;
 
 #[cfg_attr(feature = "bitcode", derive(Decode, Encode))]
 #[derive(Clone)]
-pub struct SparSet<K: Unsigned, const N: usize> {
+pub struct SparSet<K: Unsigned> {
     sparse: Box<[K]>,
     len: K,
     dense: Box<[K]>,
@@ -24,24 +24,24 @@ pub struct SparSet<K: Unsigned, const N: usize> {
     mask: BitBox,
 }
 
-impl<K, const N: usize> Default for SparSet<K, N>
+impl<K> Default for SparSet<K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
     #[cfg_attr(feature = "inline-more", inline)]
     fn default() -> Self {
-        Self::new()
+        Self::new(SparSet::<K>::MAX_K)
     }
 }
 
-impl<K, const N: usize> SparSet<K, N>
+impl<K> SparSet<K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
     pub const MAX_K: usize = 2usize.pow(size_of::<K>() as u32 * 8) - 1;
 
     #[cfg_attr(feature = "inline-more", inline)]
-    pub fn new() -> Self {
+    pub fn new(N: usize) -> Self {
         assert!(N <= Self::MAX_K);
 
         Self {
@@ -91,7 +91,7 @@ where
 
     #[cfg_attr(feature = "inline-more", inline)]
     pub fn contains(&self, k: K) -> bool {
-        if k.as_() > N {
+        if k.as_() >= self.sparse.len() {
             return false;
         }
         let x = self.sparse[k.as_()];
@@ -220,7 +220,7 @@ where
     }
 }
 
-impl<'a, K, const N: usize> IntoIterator for &'a SparSet<K, N>
+impl<'a, K> IntoIterator for &'a SparSet<K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -233,7 +233,7 @@ where
     }
 }
 
-impl<'a, K, const N: usize> IntoIterator for &'a mut SparSet<K, N>
+impl<'a, K> IntoIterator for &'a mut SparSet<K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {

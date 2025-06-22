@@ -2,14 +2,14 @@ use core::fmt;
 use num_traits::{AsPrimitive, Unsigned};
 use std::{fmt::Debug, iter, slice::Iter};
 
-pub struct Union<'a, K, const N: usize, const M: usize>
+pub struct Union<'a, K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
-    pub(super) iter: iter::Chain<Iter<'a, K>, super::Difference<'a, K, N, M>>,
+    pub(super) iter: iter::Chain<Iter<'a, K>, super::Difference<'a, K>>,
 }
 
-impl<K, const N: usize, const M: usize> Clone for Union<'_, K, N, M>
+impl<K> Clone for Union<'_, K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -21,7 +21,7 @@ where
     }
 }
 
-impl<'a, K, const N: usize, const M: usize> Iterator for Union<'a, K, N, M>
+impl<'a, K> Iterator for Union<'a, K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
@@ -47,7 +47,7 @@ where
     }
 }
 
-impl<K, const N: usize, const M: usize> fmt::Debug for Union<'_, K, N, M>
+impl<K> fmt::Debug for Union<'_, K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd + Debug,
 {
@@ -56,12 +56,12 @@ where
     }
 }
 
-impl<K, const N: usize, const M: usize> iter::FusedIterator for Union<'_, K, N, M> where
+impl<K> iter::FusedIterator for Union<'_, K> where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd
 {
 }
 
-impl<K, const N: usize, const M: usize> iter::ExactSizeIterator for Union<'_, K, N, M> where
+impl<K> iter::ExactSizeIterator for Union<'_, K> where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd
 {
 }
