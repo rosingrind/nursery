@@ -182,3 +182,33 @@ where
         self.iter()
     }
 }
+
+#[cfg(feature = "rayon")]
+impl<'a, K, V> IntoParallelIterator for &'a SparMap<K, V>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd + Sync,
+    V: Sync,
+{
+    type Item = (&'a K, &'a V);
+    type Iter = impl_ref::MapParIter<'a, K, V>;
+
+    #[cfg_attr(feature = "inline-more", inline)]
+    fn into_par_iter(self) -> Self::Iter {
+        <SparMap<K, V> as MapRef<K, V>>::par_iter(self)
+    }
+}
+
+#[cfg(feature = "rayon")]
+impl<'a, K, V> IntoParallelIterator for &'a mut SparMap<K, V>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd + Sync,
+    V: Sync,
+{
+    type Item = (&'a K, &'a V);
+    type Iter = impl_ref::MapParIter<'a, K, V>;
+
+    #[cfg_attr(feature = "inline-more", inline)]
+    fn into_par_iter(self) -> Self::Iter {
+        <SparMap<K, V> as MapRef<K, V>>::par_iter(self)
+    }
+}

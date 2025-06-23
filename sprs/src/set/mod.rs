@@ -224,6 +224,20 @@ where
 
     #[cfg_attr(feature = "inline-more", inline)]
     fn into_par_iter(self) -> Self::Iter {
-        <SparSet<K> as SetRef<K>>::par_iter(&self)
+        <SparSet<K> as SetRef<K>>::par_iter(self)
+    }
+}
+
+#[cfg(feature = "rayon")]
+impl<'a, K> IntoParallelIterator for &'a mut SparSet<K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd + Sync,
+{
+    type Item = &'a K;
+    type Iter = impl_ref::SetParIter<'a, K>;
+
+    #[cfg_attr(feature = "inline-more", inline)]
+    fn into_par_iter(self) -> Self::Iter {
+        <SparSet<K> as SetRef<K>>::par_iter(self)
     }
 }

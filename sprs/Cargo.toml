@@ -15,7 +15,6 @@ itertools.workspace = true
 rand.workspace = true
 sparsey = { git = "https://github.com/rosingrind/sparsey.git", features = [
     "bitcode",
-    "parallel",
 ] }
 
 [features]
@@ -24,7 +23,7 @@ bitcode = ["dep:bitcode"]
 bitmask = []
 inline-more = []
 nightly = []
-rayon = ["dep:rayon"]
+rayon = ["dep:rayon", "sparsey/parallel"]
 
 [[bench]]
 name = "ext_mut"
