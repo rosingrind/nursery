@@ -44,27 +44,31 @@ where
 
 impl<K, V> FromIterator<(K, V)> for SparMap<K, V>
 where
-    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd + Ord,
     V: Send + Sync + Copy,
 {
     #[cfg_attr(feature = "inline-more", inline)]
+    // TODO: get max element from iterator without consuming and construct Self
     fn from_iter<I: IntoIterator<Item = (K, V)>>(iter: I) -> Self {
-        let iter = iter.into_iter();
-        let (lower, upper) = iter.size_hint();
-
-        let mut map = Self::new(upper.unwrap_or(lower));
-        map.extend(iter);
-        map
+        let arr: Vec<(K, V)> = iter.into_iter().collect();
+        Self::from(arr)
     }
 }
 
-impl<K, V> From<&[(K, V)]> for SparMap<K, V>
+impl<K, V> From<Vec<(K, V)>> for SparMap<K, V>
 where
-    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd + Ord,
     V: Send + Sync + Copy,
 {
-    fn from(arr: &[(K, V)]) -> Self {
-        arr.into_iter().cloned().collect()
+    /// Portable [`SparMap::insert_all`] implementation, subject to change
+    fn from(arr: Vec<(K, V)>) -> Self {
+        let mut map = Self::new(arr.iter().max_by_key(|(k, _)| k).unwrap().0.as_());
+        let (k, v) = map.filter_all_excl(arr);
+
+        let len = map.len().as_();
+        map.keys.insert_all_seq_uncheck(&k);
+        map.vals[len..(len + v.len())].copy_from_slice(v.as_slice());
+        map
     }
 }
 

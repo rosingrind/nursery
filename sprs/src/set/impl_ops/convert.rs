@@ -20,7 +20,7 @@ where
 {
     /// Portable [`SparSet::insert_all`] implementation, subject to change
     fn from(arr: &[K]) -> Self {
-        let mut set = Self::new(dbg!(arr.iter().max().unwrap().as_()));
+        let mut set = Self::new(arr.iter().max().unwrap().as_());
         let s = set.filter_all_excl(arr);
 
         set.insert_all_seq_uncheck(&s);
