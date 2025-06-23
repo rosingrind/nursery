@@ -6,6 +6,8 @@ mod tests;
 
 #[cfg(feature = "bitcode")]
 use bitcode::{Decode, Encode};
+#[cfg(feature = "bitmask")]
+use bitvec::boxed::BitBox;
 use num_traits::{AsPrimitive, Unsigned};
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;
@@ -84,7 +86,10 @@ where
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(feature = "rayon")]
     /// Returns dense indexes of keys (parallel)
-    pub fn as_index_all(&self, k: &[K]) -> impl ParallelIterator<Item = K> {
+    pub fn as_index_all(&self, k: &[K]) -> impl ParallelIterator<Item = K>
+    where
+        K: Sync + Send,
+    {
         k.par_iter()
             .filter_map(|k| self.contains(*k).then_some(self.sparse[k.as_()]))
     }
@@ -98,11 +103,10 @@ where
         #[cfg(not(feature = "bitmask"))]
         {
             x < self.len && self.dense[x.as_()] == k
-            // dbg!(dbg!(x) < dbg!(self.len)) && dbg!(dbg!(self.dense[x.as_()]) == dbg!(k))
         }
         #[cfg(feature = "bitmask")]
         {
-            x < self.len && self.dense[k.as_()] == k && self.mask[k as usize]
+            x < self.len && self.dense[k.as_()] == k && self.mask[k.as_()]
         }
     }
 
@@ -138,7 +142,6 @@ where
 
     // TODO: test if `#[inline]` elides calling `f()`
     #[inline]
-    #[cfg(not(feature = "rayon"))]
     /// "swap + pop" (seq) deletion of multiple entries
     pub(crate) fn delete_all_seq_uncheck<F: FnMut(K, K)>(&mut self, a: &[K], mut f: F) {
         // < 25%
@@ -154,41 +157,6 @@ where
             self.sparse.swap(k.as_(), self.dense[self.len.as_()].as_());
             self.dense.swap(s.as_(), self.len.as_());
         }
-    }
-
-    #[cfg(feature = "rayon")]
-    /// "swap + pop" (seq) deletion of multiple entries
-    pub(crate) fn delete_all_seq_uncheck(&mut self, a: &mut [Key]) {
-        #[cfg(feature = "bitmask")]
-        {
-            for k in a.iter() {
-                self.mask.set(*k as usize, true);
-            }
-        }
-        // < 25%
-        a.par_iter_mut().enumerate().for_each(|(i, k)| {
-            let s = self.sparse[*k as usize];
-
-            let ptr_s = self.sparse.as_ptr();
-            let raw_s = ptr_s as *mut Key;
-            unsafe {
-                raw_s
-                    .add(*k as usize)
-                    .swap(raw_s.add(self.dense[self.len as usize - i - 1] as usize))
-            };
-
-            let ptr_d = self.dense.as_ptr();
-            let raw_d = ptr_d as *mut Key;
-            unsafe {
-                raw_d
-                    .add(s as usize)
-                    .swap(raw_d.add(self.len as usize - i - 1))
-            };
-
-            *k = s;
-        });
-
-        self.len -= a.len() as Key;
     }
 
     pub(crate) fn filter_all_incl(&self, k: &[K]) -> Vec<K> {
@@ -225,10 +193,10 @@ where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
     type Item = &'a K;
-    type IntoIter = std::slice::Iter<'a, K>;
+    type IntoIter = impl_ref::SetIter<'a, K>;
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn into_iter(self) -> std::slice::Iter<'a, K> {
+    fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }
 }
@@ -238,10 +206,24 @@ where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
     type Item = &'a K;
-    type IntoIter = std::slice::Iter<'a, K>;
+    type IntoIter = impl_ref::SetIter<'a, K>;
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn into_iter(self) -> std::slice::Iter<'a, K> {
+    fn into_iter(self) -> Self::IntoIter {
         self.iter()
+    }
+}
+
+#[cfg(feature = "rayon")]
+impl<'a, K> IntoParallelIterator for &'a SparSet<K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd + Sync,
+{
+    type Item = &'a K;
+    type Iter = impl_ref::SetParIter<'a, K>;
+
+    #[cfg_attr(feature = "inline-more", inline)]
+    fn into_par_iter(self) -> Self::Iter {
+        <SparSet<K> as SetRef<K>>::par_iter(&self)
     }
 }

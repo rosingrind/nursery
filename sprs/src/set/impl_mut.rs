@@ -48,7 +48,7 @@ where
     fn clear(&mut self) {
         #[cfg(feature = "bitmask")]
         {
-            self.mask = KeySliceMask::ZERO;
+            self.mask.fill(false);
         }
         self.len = K::zero();
     }

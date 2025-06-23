@@ -105,7 +105,10 @@ where
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(feature = "rayon")]
-    pub fn query_all(&self, k: &[K]) -> impl ParallelIterator<Item = &V> {
+    pub fn query_all(&self, k: &[K]) -> impl ParallelIterator<Item = &V>
+    where
+        K: Send + Sync,
+    {
         self.keys.as_index_all(k).map(|k| &self.vals[k.as_()])
     }
 
@@ -121,7 +124,10 @@ where
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(feature = "rayon")]
-    pub fn query_all_mut(&mut self, k: &[K]) -> impl ParallelIterator<Item = &mut V> {
+    pub fn query_all_mut(&mut self, k: &[K]) -> impl ParallelIterator<Item = &mut V>
+    where
+        K: Send + Sync,
+    {
         self.keys.as_index_all(k).map(|k| {
             let ptr = self.vals.as_ptr();
             let raw = ptr as *mut V;

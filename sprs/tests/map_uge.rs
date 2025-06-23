@@ -52,6 +52,6 @@ fn delete_all() {
     map.delete_all(&vec_b);
     assert_eq!(map.as_vals(), [all[Key::MAX as usize - 1].1]);
     assert_eq!(map.query_one(Key::MAX - 1), Some(&"65534"));
-    assert_eq!(map.query_all(&vec_a).collect_array::<1>(), Some([&"65534"]));
+    assert_eq!(map.query_all(&vec_a).collect::<Vec<_>>(), [&"65534"]);
     assert_eq!(map.len(), 1);
 }

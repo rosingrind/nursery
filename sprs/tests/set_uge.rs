@@ -40,9 +40,6 @@ fn delete_all() {
     set.delete_all(&vec_b);
     assert_eq!(set.as_slice(), &[Key::MAX - 1]);
     assert_eq!(set.as_index_one(Key::MAX - 1), Some(0));
-    assert_eq!(
-        set.as_index_all(set.as_slice()).collect_array::<1>(),
-        Some([0])
-    );
+    assert_eq!(set.as_index_all(set.as_slice()).collect::<Vec<_>>(), [0]);
     assert_eq!(set.len(), 1);
 }

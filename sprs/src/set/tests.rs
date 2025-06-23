@@ -15,7 +15,7 @@ fn regular_ops() {
     assert_eq!(set.len, 0);
     assert_eq!(set.len(), 0);
     #[cfg(feature = "bitmask")]
-    assert_eq!(set.mask, KeySliceMask::ZERO);
+    assert!(!set.mask.any());
 
     assert!(set.insert_one(5));
     assert!(!set.insert_one(5));
@@ -40,7 +40,7 @@ fn regular_ops() {
     assert_eq!(set.len, 0);
     assert_eq!(set.len(), set.len);
     #[cfg(feature = "bitmask")]
-    assert_eq!(set.mask, KeySliceMask::ZERO);
+    assert!(!set.mask.any());
 
     for (i, k) in (4..8).enumerate() {
         assert!(set.insert_one(k));
@@ -65,7 +65,7 @@ fn regular_ops() {
     assert_eq!(set.len, 0);
     assert_eq!(set.len(), set.len);
     #[cfg(feature = "bitmask")]
-    assert_eq!(set.mask, KeySliceMask::ZERO);
+    assert!(!set.mask.any());
 }
 
 #[test]
@@ -256,12 +256,11 @@ fn test_intersection() {
     assert!(b.insert_one(5));
     assert!(b.insert_one(3));
 
-    let mut i = 0;
     let expected = [3, 5, 11, 77];
-    for x in a.intersection(&b) {
-        assert!(expected.contains(x));
-        i += 1;
-    }
+    let i = a
+        .intersection(&b)
+        .inspect(|x| assert!(expected.contains(x)))
+        .count();
     assert_eq!(i, expected.len());
 }
 
@@ -279,12 +278,11 @@ fn test_difference() {
     assert!(b.insert_one(3));
     assert!(b.insert_one(9));
 
-    let mut i = 0;
     let expected = [1, 5, 11];
-    for x in a.difference(&b) {
-        assert!(expected.contains(x));
-        i += 1;
-    }
+    let i = a
+        .difference(&b)
+        .inspect(|x| assert!(expected.contains(x)))
+        .count();
     assert_eq!(i, expected.len());
 }
 
@@ -304,12 +302,11 @@ fn test_symmetric_difference() {
     assert!(b.insert_one(14));
     assert!(b.insert_one(22));
 
-    let mut i = 0;
     let expected = [1, 5, 11, 14, 22];
-    for x in a.symmetric_difference(&b) {
-        assert!(expected.contains(x));
-        i += 1;
-    }
+    let i = a
+        .symmetric_difference(&b)
+        .inspect(|x| assert!(expected.contains(x)))
+        .count();
     assert_eq!(i, expected.len());
 }
 
@@ -333,12 +330,11 @@ fn test_union() {
     assert!(b.insert_one(13));
     assert!(b.insert_one(19));
 
-    let mut i = 0;
     let expected = [1, 3, 5, 9, 11, 13, 16, 19, 24];
-    for x in a.union(&b) {
-        assert!(expected.contains(x));
-        i += 1;
-    }
+    let i = a
+        .union(&b)
+        .inspect(|x| assert!(expected.contains(x)))
+        .count();
     assert_eq!(i, expected.len());
 }
 
