@@ -1,67 +1,66 @@
-use divan::{Bencher, black_box};
+use std::hint::black_box;
+
+use bencher::Bencher;
 use itertools::Itertools;
 use sprs::{
     KEY_MAX, Key,
     map::{MapMut, SparMap},
 };
 
-#[divan::bench()]
-fn insert_one() {
-    let mut map = SparMap::<Key, &str>::new(0);
-    black_box(&mut map).insert_one(black_box(0), black_box("0"));
-    black_box(&mut map).insert_one(black_box(0), black_box("0"));
+fn insert_one(b: &mut Bencher) {
+    b.iter(|| {
+        let mut map = SparMap::<Key, &str>::new(0);
+        map.insert_one(black_box(0), black_box("0"));
+        map.insert_one(black_box(0), black_box("0"));
+    });
 }
 
-#[divan::bench()]
-fn insert_all(bencher: Bencher) {
-    let map = SparMap::<Key, &str>::new(KEY_MAX);
-    let tmp = (0..Key::MAX)
+fn insert_all(b: &mut Bencher) {
+    let map = SparMap::<Key, &str>::new(black_box(KEY_MAX));
+    let tmp = black_box(0..Key::MAX)
         .map(|x| (x, x.to_string()))
-        .collect::<Vec<_>>();
+        .collect::<Box<_>>();
     let vec = tmp
         .iter()
         .map(|(k, v)| (*k, v.as_str()))
-        .collect::<Vec<_>>();
+        .collect::<Box<_>>();
 
-    bencher.bench(|| {
-        let mut map = black_box(map.clone());
-        black_box(&mut map).insert_all(black_box(vec.clone()));
-        black_box(&mut map).insert_all(black_box(vec.clone()));
+    b.iter(|| {
+        let mut map = map.clone();
+        map.insert_all(vec.clone());
+        map.insert_all(vec.clone());
     });
 }
 
-#[divan::bench()]
-fn delete_one(bencher: Bencher) {
+fn delete_one(b: &mut Bencher) {
     let mut map = SparMap::<Key, &str>::new(0);
-    map.insert_one(0, "0");
+    map.insert_one(black_box(0), black_box("0"));
 
-    bencher.bench(|| {
+    b.iter(|| {
         let mut map = black_box(map.clone());
-        black_box(&mut map).delete_one(black_box(0));
-        black_box(&mut map).delete_one(black_box(5));
+        map.delete_one(black_box(0));
+        map.delete_one(black_box(5));
     });
 }
 
-#[divan::bench()]
-fn delete_all(bencher: Bencher) {
+fn delete_all(b: &mut Bencher) {
     let mut map = SparMap::<Key, &str>::new(KEY_MAX);
-    let tmp = (0..Key::MAX)
+    let tmp = black_box(0..Key::MAX)
         .map(|x| (x, x.to_string()))
-        .collect::<Vec<_>>();
+        .collect::<Box<_>>();
     let add = tmp
         .iter()
         .map(|(k, v)| (*k, v.as_str()))
-        .collect::<Vec<_>>();
+        .collect::<Box<_>>();
     map.insert_all(add);
-    let del = (0..Key::MAX).collect_array::<KEY_MAX>().unwrap();
+    let del = black_box(0..Key::MAX).collect_array::<KEY_MAX>().unwrap();
 
-    bencher.bench(|| {
+    b.iter(|| {
         let mut map = black_box(map.clone());
-        black_box(&mut map).delete_all(black_box(&del));
-        black_box(&mut map).delete_all(black_box(&del));
+        map.delete_all(black_box(del));
+        map.delete_all(black_box(del));
     });
 }
 
-fn main() {
-    divan::main();
-}
+bencher::benchmark_group!(benches, insert_one, insert_all, delete_one, delete_all);
+bencher::benchmark_main!(benches);

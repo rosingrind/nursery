@@ -1,48 +1,47 @@
-use divan::{Bencher, black_box};
-use sparsey::World;
-use sprs::Key;
+use std::hint::black_box;
 
-#[divan::bench()]
-fn insert_one(bencher: Bencher) {
-    bencher.bench(|| {
+use bencher::Bencher;
+use sparsey::World;
+
+fn insert_one(b: &mut Bencher) {
+    b.iter(|| {
         let mut map = black_box(World::builder().register::<&str>().build());
-        black_box(&mut map).create(black_box(("5",)));
-        black_box(&mut map).create(black_box(("5",)));
+        map.create(black_box(("5",)));
+        map.create(black_box(("5",)));
     });
 }
 
-#[divan::bench()]
-fn insert_all(bencher: Bencher) {
-    let tmp = (0..Key::MAX)
+fn insert_all(b: &mut Bencher) {
+    let tmp = black_box(0..sprs::KEY_MAX)
         .map(|x| (x.to_string().into_boxed_str(),))
         .collect::<Vec<_>>();
 
-    bencher.bench(|| {
+    b.iter(|| {
         let mut map = black_box(World::builder().register::<Box<str>>().build());
-        black_box(black_box(&mut map).extend(tmp.clone().into_iter()));
+        black_box(map.extend(tmp.clone()));
     });
 }
 
-#[divan::bench()]
-fn delete_one(bencher: Bencher) {
-    bencher.bench(|| {
+fn delete_one(b: &mut Bencher) {
+    b.iter(|| {
         let mut map = black_box(World::builder().register::<&str>().build());
-        let key = black_box(&mut map).create(black_box(("5",)));
+        let key = map.create(black_box(("5",)));
         black_box(map.remove::<(&str,)>(key));
         black_box(map.remove::<(&str,)>(key));
     });
 }
 
-#[divan::bench()]
-fn delete_all(bencher: Bencher) {
-    let tmp = (0..Key::MAX).map(|x| x.to_string()).collect::<Vec<_>>();
+fn delete_all(b: &mut Bencher) {
+    let tmp = black_box(0..sprs::KEY_MAX)
+        .map(|x| x.to_string())
+        .collect::<Vec<_>>();
 
-    bencher.bench(|| {
+    b.iter(|| {
         let mut map = black_box(World::builder().register::<Box<str>>().build());
         let del = black_box(
             tmp.iter()
                 .cloned()
-                .map(|i| black_box(&mut map).create(black_box((i.into_boxed_str(),)))),
+                .map(|i| map.create(black_box((i.into_boxed_str(),)))),
         )
         .collect::<Vec<_>>();
         for key in del.iter() {
@@ -52,6 +51,5 @@ fn delete_all(bencher: Bencher) {
     });
 }
 
-fn main() {
-    divan::main();
-}
+bencher::benchmark_group!(benches, insert_one, insert_all, delete_one, delete_all);
+bencher::benchmark_main!(benches);

@@ -1,4 +1,6 @@
-use divan::{Bencher, black_box};
+use std::hint::black_box;
+
+use bencher::Bencher;
 use itertools::Itertools;
 use sprs::{
     KEY_MAX, Key,
@@ -8,72 +10,76 @@ use sprs::{
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;
 
-#[divan::bench()]
-fn contains(bencher: Bencher) {
+fn contains(b: &mut Bencher) {
     let mut set = SparSet::<Key>::new(0);
-    set.insert_one(0);
+    set.insert_one(black_box(0));
 
-    bencher.bench(move || {
-        let mut set = black_box(set.clone());
-        black_box(&mut set).contains(black_box(0));
-        black_box(&mut set).contains(black_box(5));
+    b.iter(move || {
+        let set = black_box(set.clone());
+        set.contains(black_box(0));
+        set.contains(black_box(5));
     });
 }
 
-#[divan::bench()]
-fn intersection(bencher: Bencher) {
-    let vec_a = (0..Key::MAX).collect_array::<KEY_MAX>().unwrap();
-    let vec_b = (0..Key::MAX).rev().collect_array::<KEY_MAX>().unwrap();
-    let a = SparSet::<Key>::new(KEY_MAX);
-    let b = SparSet::<Key>::new(KEY_MAX);
+fn intersection(b: &mut Bencher) {
+    let vec_l = black_box(0..Key::MAX).collect_array::<KEY_MAX>().unwrap();
+    let vec_r = black_box(0..Key::MAX)
+        .rev()
+        .collect_array::<KEY_MAX>()
+        .unwrap();
+    let l = SparSet::<Key>::new(KEY_MAX);
+    let r = SparSet::<Key>::new(KEY_MAX);
 
-    bencher.bench(|| {
-        let mut a = black_box(a.clone());
-        let mut b = black_box(b.clone());
-        black_box(&mut a).insert_all(black_box(&vec_a));
-        black_box(&mut b).insert_all(black_box(&vec_b));
+    b.iter(|| {
+        let mut l = black_box(l.clone());
+        let mut r = black_box(r.clone());
+        l.insert_all(black_box(vec_l));
+        r.insert_all(black_box(vec_r));
 
-        black_box(a.intersection(&b).collect::<Vec<_>>());
-        black_box(b.intersection(&a).collect::<Vec<_>>());
+        black_box(l.intersection(&r).collect::<Box<_>>());
+        black_box(r.intersection(&l).collect::<Box<_>>());
     });
 }
 
-#[divan::bench()]
-fn union(bencher: Bencher) {
-    let vec_a = (0..Key::MAX).collect_array::<KEY_MAX>().unwrap();
-    let vec_b = (0..Key::MAX).rev().collect_array::<KEY_MAX>().unwrap();
-    let a = SparSet::<Key>::new(KEY_MAX);
-    let b = SparSet::<Key>::new(KEY_MAX);
+fn union(b: &mut Bencher) {
+    let vec_l = black_box(0..Key::MAX).collect_array::<KEY_MAX>().unwrap();
+    let vec_r = black_box(0..Key::MAX)
+        .rev()
+        .collect_array::<KEY_MAX>()
+        .unwrap();
+    let l = SparSet::<Key>::new(KEY_MAX);
+    let r = SparSet::<Key>::new(KEY_MAX);
 
-    bencher.bench(|| {
-        let mut a = black_box(a.clone());
-        let mut b = black_box(b.clone());
-        black_box(&mut a).insert_all(black_box(&vec_a));
-        black_box(&mut b).insert_all(black_box(&vec_b));
+    b.iter(|| {
+        let mut l = black_box(l.clone());
+        let mut r = black_box(r.clone());
+        l.insert_all(black_box(vec_l));
+        r.insert_all(black_box(vec_r));
 
-        black_box(a.union(&b).collect::<Vec<_>>());
-        black_box(b.union(&a).collect::<Vec<_>>());
+        black_box(l.union(&r).collect::<Box<_>>());
+        black_box(r.union(&l).collect::<Box<_>>());
     });
 }
 
-#[divan::bench()]
-fn difference(bencher: Bencher) {
-    let vec_a = (0..Key::MAX).collect_array::<KEY_MAX>().unwrap();
-    let vec_b = (0..Key::MAX).rev().collect_array::<KEY_MAX>().unwrap();
-    let a = SparSet::<Key>::new(KEY_MAX);
-    let b = SparSet::<Key>::new(KEY_MAX);
+fn difference(b: &mut Bencher) {
+    let vec_l = black_box(0..Key::MAX).collect_array::<KEY_MAX>().unwrap();
+    let vec_r = black_box(0..Key::MAX)
+        .rev()
+        .collect_array::<KEY_MAX>()
+        .unwrap();
+    let l = SparSet::<Key>::new(KEY_MAX);
+    let r = SparSet::<Key>::new(KEY_MAX);
 
-    bencher.bench(|| {
-        let mut a = black_box(a.clone());
-        let mut b = black_box(b.clone());
-        black_box(&mut a).insert_all(black_box(&vec_a));
-        black_box(&mut b).insert_all(black_box(&vec_b));
+    b.iter(|| {
+        let mut l = black_box(l.clone());
+        let mut r = black_box(r.clone());
+        l.insert_all(black_box(vec_l));
+        r.insert_all(black_box(vec_r));
 
-        black_box(a.difference(&b).collect::<Vec<_>>());
-        black_box(b.difference(&a).collect::<Vec<_>>());
+        black_box(l.difference(&r).collect::<Box<_>>());
+        black_box(r.difference(&l).collect::<Box<_>>());
     });
 }
 
-fn main() {
-    divan::main();
-}
+bencher::benchmark_group!(benches, contains, intersection, union, difference);
+bencher::benchmark_main!(benches);

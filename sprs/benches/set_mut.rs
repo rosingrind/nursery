@@ -1,4 +1,6 @@
-use divan::{Bencher, black_box};
+use std::hint::black_box;
+
+use bencher::Bencher;
 use itertools::Itertools;
 use sprs::{
     KEY_MAX, Key,
@@ -8,50 +10,47 @@ use sprs::{
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;
 
-#[divan::bench()]
-fn insert_one() {
-    let mut set = black_box(SparSet::<Key>::new(0));
-    black_box(&mut set).insert_one(black_box(0));
-    black_box(&mut set).insert_one(black_box(0));
+fn insert_one(b: &mut Bencher) {
+    b.iter(|| {
+        let mut set = black_box(SparSet::<Key>::new(0));
+        set.insert_one(black_box(0));
+        set.insert_one(black_box(0));
+    });
 }
 
-#[divan::bench()]
-fn insert_all(bencher: Bencher) {
+fn insert_all(b: &mut Bencher) {
     let vec = (0..Key::MAX).collect_array::<KEY_MAX>().unwrap();
     let set = SparSet::<Key>::new(KEY_MAX);
 
-    bencher.bench(|| {
+    b.iter(|| {
         let mut set = black_box(set.clone());
-        black_box(&mut set).insert_all(black_box(&vec));
-        black_box(&mut set).insert_all(black_box(&vec));
+        set.insert_all(black_box(vec));
+        set.insert_all(black_box(vec));
     });
 }
 
-#[divan::bench()]
-fn delete_one(bencher: Bencher) {
+fn delete_one(b: &mut Bencher) {
     let mut set = SparSet::<Key>::new(0);
     set.insert_one(black_box(0));
 
-    bencher.bench(|| {
+    b.iter(|| {
         let mut set = black_box(set.clone());
-        black_box(&mut set).delete_one(black_box(0));
-        black_box(&mut set).delete_one(black_box(5));
+        set.delete_one(black_box(0));
+        set.delete_one(black_box(5));
     });
 }
 
-#[divan::bench()]
-fn delete_all(bencher: Bencher) {
+fn delete_all(b: &mut Bencher) {
     let vec = (0..Key::MAX).collect_array::<KEY_MAX>().unwrap();
     let mut set = SparSet::<Key>::new(KEY_MAX);
-    set.insert_all(&vec);
+    set.insert_all(vec);
 
-    bencher.bench(|| {
+    b.iter(|| {
         let mut set = black_box(set.clone());
-        black_box(&mut set).delete_all(black_box(&vec));
-        black_box(&mut set).delete_all(black_box(&vec));
+        set.delete_all(black_box(vec));
+        set.delete_all(black_box(vec));
     });
 }
 
-fn main() {
-    divan::main();
-}
+bencher::benchmark_group!(benches, insert_one, insert_all, delete_one, delete_all);
+bencher::benchmark_main!(benches);

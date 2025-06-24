@@ -11,7 +11,7 @@ num-traits = "0.2.19"
 rayon = { workspace = true, optional = true }
 
 [dev-dependencies]
-divan.workspace = true
+bencher.workspace = true
 itertools.workspace = true
 rand.workspace = true
 sparsey = { git = "https://github.com/rosingrind/sparsey.git", features = [
