@@ -14,9 +14,7 @@ rayon = { workspace = true, optional = true }
 bencher.workspace = true
 itertools.workspace = true
 rand.workspace = true
-sparsey = { git = "https://github.com/rosingrind/sparsey.git", features = [
-    "bitcode",
-] }
+sparsey = "0.13.3"
 
 [features]
 default = []
