@@ -95,7 +95,7 @@ where
     /// Returns dense indexes of keys (parallel)
     pub fn as_index_all(&self, k: &[K]) -> impl ParallelIterator<Item = K>
     where
-        K: Sync + Send,
+        K: Send + Sync,
     {
         k.par_iter()
             .filter_map(|k| self.contains(*k).then_some(self.sparse[k.as_()]))

@@ -10,7 +10,7 @@ use super::{SparMap, impl_mut::MapMut, impl_ref::MapRef};
 impl<K, V> PartialEq for SparMap<K, V>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
-    V: Send + Sync + Copy + PartialEq,
+    V: Copy + PartialEq,
 {
     fn eq(&self, other: &Self) -> bool {
         if self.len() != other.len() {
@@ -28,14 +28,14 @@ where
 impl<K, V> Eq for SparMap<K, V>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
-    V: Send + Sync + Copy + PartialEq,
+    V: Copy + PartialEq,
 {
 }
 
 impl<K, V> Debug for SparMap<K, V>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd + Debug,
-    V: Send + Sync + Copy + Debug,
+    V: Copy + Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_map().entries(self.iter()).finish()
@@ -45,7 +45,7 @@ where
 impl<K, V> FromIterator<(K, V)> for SparMap<K, V>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd + Ord,
-    V: Send + Sync + Copy,
+    V: Copy,
 {
     #[cfg_attr(feature = "inline-more", inline)]
     // TODO: get max element from iterator without consuming and construct Self
@@ -61,7 +61,7 @@ where
 impl<K, V> Extend<(K, V)> for SparMap<K, V>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
-    V: Send + Sync + Copy,
+    V: Copy,
 {
     #[cfg_attr(feature = "inline-more", inline)]
     fn extend<I: IntoIterator<Item = (K, V)>>(&mut self, iter: I) {
@@ -78,7 +78,7 @@ where
 impl<'a, K, V> Extend<(&'a K, &'a V)> for SparMap<K, V>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
-    V: Send + Sync + Copy,
+    V: Copy,
 {
     #[cfg_attr(feature = "inline-more", inline)]
     fn extend<I: IntoIterator<Item = (&'a K, &'a V)>>(&mut self, iter: I) {
@@ -95,7 +95,7 @@ where
 impl<'a, K, V> Extend<&'a (K, V)> for SparMap<K, V>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
-    V: Send + Sync + Copy,
+    V: Copy,
 {
     #[cfg_attr(feature = "inline-more", inline)]
     fn extend<I: IntoIterator<Item = &'a (K, V)>>(&mut self, iter: I) {
@@ -112,7 +112,7 @@ where
 impl<K, V> Index<K> for SparMap<K, V>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
-    V: Send + Sync + Copy,
+    V: Copy,
 {
     type Output = V;
 

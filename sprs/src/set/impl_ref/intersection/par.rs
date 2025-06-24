@@ -1,5 +1,4 @@
 use num_traits::{AsPrimitive, Unsigned};
-
 #[cfg(feature = "rayon")]
 use rayon::iter::{IntoParallelIterator, ParallelIterator, plumbing::UnindexedConsumer};
 

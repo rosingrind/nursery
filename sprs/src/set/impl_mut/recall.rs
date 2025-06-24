@@ -1,15 +1,14 @@
-use std::iter;
-
 use num_traits::{AsPrimitive, Unsigned};
+use std::iter;
 
 use crate::set::{SetMut, SparSet};
 
-pub(super) struct RawRecall<'a, K>
+pub(in crate::set) struct RawRecall<'a, K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
-    pub(super) iter: std::vec::IntoIter<K>,
-    pub(super) table: &'a mut SparSet<K>,
+    pub(in crate::set) iter: std::vec::IntoIter<K>,
+    pub(in crate::set) table: &'a mut SparSet<K>,
 }
 
 impl<K> RawRecall<'_, K>
@@ -37,8 +36,8 @@ where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     F: Fn(&K) -> bool,
 {
-    pub(super) f: F,
-    pub(super) inner: RawRecall<'a, K>,
+    pub(in crate::set) f: F,
+    pub(in crate::set) inner: RawRecall<'a, K>,
 }
 
 impl<K, F> Iterator for Recall<'_, K, F>

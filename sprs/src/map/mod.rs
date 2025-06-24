@@ -32,7 +32,7 @@ pub struct SparMap<K: Unsigned, V> {
 impl<K, V> Default for SparMap<K, V>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
-    V: Send + Sync + Copy,
+    V: Copy,
 {
     #[cfg_attr(feature = "inline-more", inline)]
     fn default() -> Self {
@@ -43,7 +43,7 @@ where
 impl<K, V> SparMap<K, V>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
-    V: Send + Sync + Copy,
+    V: Copy,
 {
     pub const MAX_K: usize = SparSet::<K>::MAX_K;
 
@@ -109,6 +109,7 @@ where
     pub fn query_all(&self, k: &[K]) -> impl ParallelIterator<Item = &V>
     where
         K: Send + Sync,
+        V: Send + Sync,
     {
         self.keys.as_index_all(k).map(|k| &self.vals[k.as_()])
     }
@@ -128,6 +129,7 @@ where
     pub fn query_all_mut(&mut self, k: &[K]) -> impl ParallelIterator<Item = &mut V>
     where
         K: Send + Sync,
+        V: Send + Sync,
     {
         self.keys.as_index_all(k).map(|k| {
             let ptr = self.vals.as_ptr();

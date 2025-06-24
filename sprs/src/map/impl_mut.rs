@@ -43,7 +43,7 @@ where
 impl<K, V> MapMut<K, V> for SparMap<K, V>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
-    V: Send + Sync + Copy,
+    V: Copy,
 {
     #[cfg_attr(feature = "inline-more", inline)]
     fn clear(&mut self) {
