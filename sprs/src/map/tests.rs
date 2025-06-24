@@ -1,9 +1,9 @@
 use super::*;
 
 use rand::{Rng, SeedableRng, rngs::SmallRng};
-use std::borrow::ToOwned;
-use std::cell::RefCell;
 use std::vec::Vec;
+
+use crate::KEY_MAX;
 
 type MockMap<T> = SparMap<Key, T>;
 
@@ -158,37 +158,6 @@ fn test_clone_from() {
     assert_eq!(*m2.query_one(1).unwrap(), 2);
     assert_eq!(*m2.query_one(2).unwrap(), 4);
     assert_eq!(m2.len(), 2);
-}
-
-thread_local! { static DROP_VECTOR: RefCell<Vec<i32>> = const { RefCell::new(Vec::new()) } }
-
-#[derive(Hash, PartialEq, Eq)]
-struct Droppable {
-    k: usize,
-}
-
-impl Droppable {
-    fn new(k: usize) -> Droppable {
-        DROP_VECTOR.with(|slot| {
-            slot.borrow_mut()[k] += 1;
-        });
-
-        Droppable { k }
-    }
-}
-
-impl Drop for Droppable {
-    fn drop(&mut self) {
-        DROP_VECTOR.with(|slot| {
-            slot.borrow_mut()[self.k] -= 1;
-        });
-    }
-}
-
-impl Clone for Droppable {
-    fn clone(&self) -> Self {
-        Droppable::new(self.k)
-    }
 }
 
 #[test]
@@ -617,7 +586,7 @@ fn test_replace_entry_with_doesnt_corrupt() {
 
     // Populate the map with some items.
     for _ in 0..50 {
-        let x = rng.gen_range(0..20);
+        let x = rng.random_range(0..20);
         m.insert_one(x, ());
     }
 }

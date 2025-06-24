@@ -14,7 +14,7 @@ pub use impl_mut::MapMut;
 pub use impl_ref::MapRef;
 
 use crate::{
-    KEY_MAX, Key,
+    Key,
     set::{SetRef, SparSet},
 };
 
@@ -48,6 +48,7 @@ where
     pub const MAX_K: usize = SparSet::<K>::MAX_K;
 
     #[cfg_attr(feature = "inline-more", inline)]
+    #[allow(non_snake_case)]
     pub fn new(N: usize) -> Self {
         Self {
             keys: SparSet::new(N),
@@ -149,6 +150,7 @@ where
         }
     }
 
+    #[allow(dead_code)]
     pub(crate) fn filter_all_dups<I: IntoIterator<Item = (K, V)>>(
         &self,
         kv: I,

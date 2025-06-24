@@ -9,14 +9,13 @@ use sprs::{
 
 fn insert_one(b: &mut Bencher) {
     b.iter(|| {
-        let mut map = SparMap::<Key, &str>::new(0);
+        let mut map = SparMap::<Key, &str>::new(black_box(0));
         map.insert_one(black_box(0), black_box("0"));
         map.insert_one(black_box(0), black_box("0"));
     });
 }
 
 fn insert_all(b: &mut Bencher) {
-    let map = SparMap::<Key, &str>::new(black_box(KEY_MAX));
     let tmp = black_box(0..Key::MAX)
         .map(|x| (x, x.to_string()))
         .collect::<Box<_>>();
@@ -26,25 +25,22 @@ fn insert_all(b: &mut Bencher) {
         .collect::<Box<_>>();
 
     b.iter(|| {
-        let mut map = map.clone();
+        let mut map = SparMap::<Key, &str>::new(black_box(KEY_MAX));
         map.insert_all(vec.clone());
         map.insert_all(vec.clone());
     });
 }
 
 fn delete_one(b: &mut Bencher) {
-    let mut map = SparMap::<Key, &str>::new(0);
-    map.insert_one(black_box(0), black_box("0"));
-
     b.iter(|| {
-        let mut map = black_box(map.clone());
+        let mut map = SparMap::<Key, &str>::new(black_box(0));
+        map.insert_one(black_box(0), black_box("0"));
         map.delete_one(black_box(0));
         map.delete_one(black_box(5));
     });
 }
 
 fn delete_all(b: &mut Bencher) {
-    let mut map = SparMap::<Key, &str>::new(KEY_MAX);
     let tmp = black_box(0..Key::MAX)
         .map(|x| (x, x.to_string()))
         .collect::<Box<_>>();
@@ -52,13 +48,13 @@ fn delete_all(b: &mut Bencher) {
         .iter()
         .map(|(k, v)| (*k, v.as_str()))
         .collect::<Box<_>>();
-    map.insert_all(add);
     let del = black_box(0..Key::MAX).collect_array::<KEY_MAX>().unwrap();
 
     b.iter(|| {
-        let mut map = black_box(map.clone());
-        map.delete_all(black_box(del));
-        map.delete_all(black_box(del));
+        let mut map = SparMap::<Key, &str>::new(black_box(KEY_MAX));
+        map.insert_all(add.clone());
+        map.delete_all(del);
+        map.delete_all(del);
     });
 }
 

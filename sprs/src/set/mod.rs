@@ -43,6 +43,7 @@ where
     pub const MAX_K: usize = 2usize.pow(size_of::<K>() as u32 * 8) - 1;
 
     #[cfg_attr(feature = "inline-more", inline)]
+    #[allow(non_snake_case)]
     pub fn new(N: usize) -> Self {
         assert!(N <= Self::MAX_K);
 
@@ -128,6 +129,7 @@ where
         self.len = self.len.add(K::one());
     }
 
+    #[allow(dead_code)]
     #[inline]
     pub(crate) fn insert_all_seq_uncheck<I: IntoIterator<Item = K>>(&mut self, a: I) {
         for k in a {
@@ -168,6 +170,7 @@ where
         }
     }
 
+    #[allow(dead_code)]
     #[inline]
     pub(crate) fn filter_all_dups<I: IntoIterator<Item = K>>(
         &self,

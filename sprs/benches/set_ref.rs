@@ -11,11 +11,9 @@ use sprs::{
 use rayon::prelude::*;
 
 fn contains(b: &mut Bencher) {
-    let mut set = SparSet::<Key>::new(0);
-    set.insert_one(black_box(0));
-
     b.iter(move || {
-        let set = black_box(set.clone());
+        let mut set = SparSet::<Key>::new(black_box(0));
+        set.insert_one(black_box(0));
         set.contains(black_box(0));
         set.contains(black_box(5));
     });
@@ -27,14 +25,12 @@ fn intersection(b: &mut Bencher) {
         .rev()
         .collect_array::<KEY_MAX>()
         .unwrap();
-    let l = SparSet::<Key>::new(KEY_MAX);
-    let r = SparSet::<Key>::new(KEY_MAX);
 
     b.iter(|| {
-        let mut l = black_box(l.clone());
-        let mut r = black_box(r.clone());
-        l.insert_all(black_box(vec_l));
-        r.insert_all(black_box(vec_r));
+        let mut l = SparSet::<Key>::new(black_box(KEY_MAX));
+        let mut r = SparSet::<Key>::new(black_box(KEY_MAX));
+        l.insert_all(vec_l);
+        r.insert_all(vec_r);
 
         black_box(l.intersection(&r).collect::<Box<_>>());
         black_box(r.intersection(&l).collect::<Box<_>>());
@@ -47,14 +43,12 @@ fn union(b: &mut Bencher) {
         .rev()
         .collect_array::<KEY_MAX>()
         .unwrap();
-    let l = SparSet::<Key>::new(KEY_MAX);
-    let r = SparSet::<Key>::new(KEY_MAX);
 
     b.iter(|| {
-        let mut l = black_box(l.clone());
-        let mut r = black_box(r.clone());
-        l.insert_all(black_box(vec_l));
-        r.insert_all(black_box(vec_r));
+        let mut l = SparSet::<Key>::new(black_box(KEY_MAX));
+        let mut r = SparSet::<Key>::new(black_box(KEY_MAX));
+        l.insert_all(vec_l);
+        r.insert_all(vec_r);
 
         black_box(l.union(&r).collect::<Box<_>>());
         black_box(r.union(&l).collect::<Box<_>>());
@@ -67,14 +61,12 @@ fn difference(b: &mut Bencher) {
         .rev()
         .collect_array::<KEY_MAX>()
         .unwrap();
-    let l = SparSet::<Key>::new(KEY_MAX);
-    let r = SparSet::<Key>::new(KEY_MAX);
 
     b.iter(|| {
-        let mut l = black_box(l.clone());
-        let mut r = black_box(r.clone());
-        l.insert_all(black_box(vec_l));
-        r.insert_all(black_box(vec_r));
+        let mut l = SparSet::<Key>::new(black_box(KEY_MAX));
+        let mut r = SparSet::<Key>::new(black_box(KEY_MAX));
+        l.insert_all(vec_l);
+        r.insert_all(vec_r);
 
         black_box(l.difference(&r).collect::<Box<_>>());
         black_box(r.difference(&l).collect::<Box<_>>());
