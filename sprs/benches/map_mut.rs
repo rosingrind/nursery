@@ -10,8 +10,8 @@ use sprs::{
 fn insert_one(b: &mut Bencher) {
     b.iter(|| {
         let mut map = SparMap::<Key, &str>::new(black_box(0));
-        map.insert_one(black_box(0), black_box("0"));
-        map.insert_one(black_box(0), black_box("0"));
+        black_box(map.insert_one(black_box(0), black_box("0")));
+        black_box(map.insert_one(black_box(0), black_box("0")));
     });
 }
 
@@ -35,8 +35,8 @@ fn delete_one(b: &mut Bencher) {
     b.iter(|| {
         let mut map = SparMap::<Key, &str>::new(black_box(0));
         map.insert_one(black_box(0), black_box("0"));
-        map.delete_one(black_box(0));
-        map.delete_one(black_box(5));
+        black_box(map.delete_one(black_box(0)));
+        black_box(map.delete_one(black_box(5)));
     });
 }
 

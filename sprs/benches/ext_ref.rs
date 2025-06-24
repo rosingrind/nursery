@@ -13,10 +13,7 @@ fn contains(b: &mut Bencher) {
     b.iter(|| {
         let mut map = black_box(World::builder().register::<Data>().build());
         let key = map.create(black_box((Data("5".to_string()),)));
-        assert_eq!(
-            map.query_one::<&Data>().get(key).unwrap(),
-            black_box(&Data("5".to_string()))
-        );
+        black_box(map.query_one::<&Data>().get(key).unwrap());
     });
 }
 
@@ -24,21 +21,24 @@ fn query_one(b: &mut Bencher) {
     b.iter(|| {
         let mut map = black_box(World::builder().register::<Data>().build());
         let key = map.create(black_box((Data("5".to_string()),)));
-        black_box(map.query_one::<&Data>().get(key).unwrap());
+        assert_eq!(
+            map.query_one::<&Data>().get(key).unwrap(),
+            black_box(&Data("5".to_string()))
+        );
     });
 }
 
 fn query_all(b: &mut Bencher) {
     let tmp = black_box(0..sprs::KEY_MAX)
         .map(|x| x.to_string())
-        .collect::<Vec<_>>();
+        .collect::<Box<[_]>>();
 
     b.iter(|| {
         let mut map = black_box(World::builder().register::<Data>().build());
         for i in tmp.iter().cloned() {
             map.create(black_box((Data(i),)));
         }
-        black_box(map.query_all::<&Data>().into_iter().collect::<Vec<_>>());
+        black_box(map.query_all::<&Data>().into_iter().collect::<Box<[_]>>());
     });
 }
 

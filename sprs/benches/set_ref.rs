@@ -14,8 +14,8 @@ fn contains(b: &mut Bencher) {
     b.iter(move || {
         let mut set = SparSet::<Key>::new(black_box(0));
         set.insert_one(black_box(0));
-        set.contains(black_box(0));
-        set.contains(black_box(5));
+        black_box(set.contains(black_box(0)));
+        black_box(set.contains(black_box(5)));
     });
 }
 

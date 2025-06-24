@@ -6,15 +6,15 @@ use sparsey::World;
 fn insert_one(b: &mut Bencher) {
     b.iter(|| {
         let mut map = black_box(World::builder().register::<&str>().build());
-        map.create(black_box(("5",)));
-        map.create(black_box(("5",)));
+        black_box(map.create(black_box(("5",))));
+        black_box(map.create(black_box(("5",))));
     });
 }
 
 fn insert_all(b: &mut Bencher) {
     let tmp = black_box(0..sprs::KEY_MAX)
         .map(|x| (x.to_string().into_boxed_str(),))
-        .collect::<Vec<_>>();
+        .collect::<Box<[_]>>();
 
     b.iter(|| {
         let mut map = black_box(World::builder().register::<Box<str>>().build());
@@ -34,7 +34,7 @@ fn delete_one(b: &mut Bencher) {
 fn delete_all(b: &mut Bencher) {
     let tmp = black_box(0..sprs::KEY_MAX)
         .map(|x| x.to_string())
-        .collect::<Vec<_>>();
+        .collect::<Box<[_]>>();
 
     b.iter(|| {
         let mut map = black_box(World::builder().register::<Box<str>>().build());
@@ -43,7 +43,7 @@ fn delete_all(b: &mut Bencher) {
                 .cloned()
                 .map(|i| map.create(black_box((i.into_boxed_str(),)))),
         )
-        .collect::<Vec<_>>();
+        .collect::<Box<[_]>>();
         for key in del.iter() {
             black_box(map.remove::<(Box<str>,)>(*key));
             black_box(map.remove::<(Box<str>,)>(*key));

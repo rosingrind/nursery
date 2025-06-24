@@ -14,8 +14,8 @@ fn contains(b: &mut Bencher) {
     b.iter(|| {
         let mut map = SparMap::<Key, &str>::new(black_box(0));
         map.insert_one(black_box(0), black_box("0"));
-        map.contains(black_box(0));
-        map.contains(black_box(5));
+        black_box(map.contains(black_box(0)));
+        black_box(map.contains(black_box(5)));
     });
 }
 
@@ -23,8 +23,8 @@ fn query_one(b: &mut Bencher) {
     b.iter(|| {
         let mut map = SparMap::<Key, &str>::new(black_box(0));
         map.insert_one(black_box(0), black_box("0"));
-        map.query_one(black_box(0));
-        map.query_one(black_box(5));
+        black_box(map.query_one(black_box(0)));
+        black_box(map.query_one(black_box(5)));
     });
 }
 

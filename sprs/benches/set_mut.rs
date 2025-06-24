@@ -13,8 +13,8 @@ use rayon::prelude::*;
 fn insert_one(b: &mut Bencher) {
     b.iter(|| {
         let mut set = SparSet::<Key>::new(black_box(0));
-        set.insert_one(black_box(0));
-        set.insert_one(black_box(0));
+        black_box(set.insert_one(black_box(0)));
+        black_box(set.insert_one(black_box(0)));
     });
 }
 
@@ -32,8 +32,8 @@ fn delete_one(b: &mut Bencher) {
     b.iter(|| {
         let mut set = SparSet::<Key>::new(black_box(0));
         set.insert_one(black_box(0));
-        set.delete_one(black_box(0));
-        set.delete_one(black_box(5));
+        black_box(set.delete_one(black_box(0)));
+        black_box(set.delete_one(black_box(5)));
     });
 }
 
