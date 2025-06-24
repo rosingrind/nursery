@@ -10,20 +10,9 @@ where
     // TODO: get max element from iterator without consuming and construct Self
     fn from_iter<I: IntoIterator<Item = K>>(iter: I) -> Self {
         let arr: Box<[K]> = iter.into_iter().collect();
-        Self::from(&*arr)
-    }
-}
-
-impl<K> From<&[K]> for SparSet<K>
-where
-    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd + Ord,
-{
-    /// Portable [`SparSet::insert_all`] implementation, subject to change
-    fn from(arr: &[K]) -> Self {
         let mut set = Self::new(arr.iter().max().unwrap().as_());
-        let s = set.filter_all_excl(arr);
+        set.extend(arr);
 
-        set.insert_all_seq_uncheck(&s);
         set
     }
 }
@@ -34,9 +23,7 @@ where
 {
     #[cfg_attr(feature = "inline-more", inline)]
     fn extend<I: IntoIterator<Item = K>>(&mut self, iter: I) {
-        iter.into_iter().for_each(|k| {
-            self.insert_one(k);
-        });
+        self.insert_all(iter);
     }
 
     #[cfg_attr(feature = "inline-more", inline)]

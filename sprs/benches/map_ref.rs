@@ -10,24 +10,24 @@ use rayon::prelude::*;
 
 #[divan::bench()]
 fn contains(bencher: Bencher) {
-    let mut map = SparMap::<Key, &str>::new(KEY_MAX);
-    map.insert_one(5, "5");
+    let mut map = SparMap::<Key, &str>::new(0);
+    map.insert_one(0, "0");
 
     bencher.bench(|| {
         let mut map = black_box(map.clone());
-        black_box(&mut map).contains(black_box(5));
         black_box(&mut map).contains(black_box(0));
+        black_box(&mut map).contains(black_box(5));
     });
 }
 
 #[divan::bench()]
 fn query_one(bencher: Bencher) {
-    let mut map = SparMap::<Key, &str>::new(KEY_MAX);
-    map.insert_one(5, "5");
+    let mut map = SparMap::<Key, &str>::new(0);
+    map.insert_one(0, "0");
 
     bencher.bench(|| {
         let mut map = black_box(map.clone());
-        black_box(&mut map).query_one(black_box(5));
+        black_box(&mut map).query_one(black_box(0));
         black_box(&mut map).query_one(black_box(5));
     });
 }

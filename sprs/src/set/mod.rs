@@ -76,6 +76,12 @@ where
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
+    /// Returns dense index of key if exists
+    pub(crate) fn as_index_one_uncheck(&self, k: K) -> K {
+        self.sparse[k.as_()]
+    }
+
+    #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
     /// Returns dense indexes of keys
     pub fn as_index_all(&self, k: &[K]) -> impl Iterator<Item = K> {
@@ -96,95 +102,86 @@ where
 
     #[cfg_attr(feature = "inline-more", inline)]
     pub fn contains(&self, k: K) -> bool {
-        if k.as_() >= self.sparse.len() {
-            return false;
-        }
-        let x = self.sparse[k.as_()];
-        #[cfg(not(feature = "bitmask"))]
-        {
-            x < self.len && self.dense[x.as_()] == k
-        }
-        #[cfg(feature = "bitmask")]
-        {
-            x < self.len && self.dense[k.as_()] == k && self.mask[k.as_()]
+        if branches::likely(k.as_() < self.sparse.len()) {
+            let x = self.sparse[k.as_()];
+            #[cfg(not(feature = "bitmask"))]
+            {
+                x < self.len && self.dense[x.as_()] == k
+            }
+            #[cfg(feature = "bitmask")]
+            {
+                self.mask[k.as_()]
+            }
+        } else {
+            false
         }
     }
 
     #[inline]
-    pub(crate) fn insert_all_seq_uncheck(&mut self, a: &[K]) {
-        self.dense[self.len.as_()..(self.len.as_() + a.len())].copy_from_slice(a);
+    pub(crate) fn insert_one_seq_uncheck(&mut self, k: K) {
+        #[cfg(feature = "bitmask")]
+        {
+            self.mask.set(k.as_(), true);
+        }
+        self.sparse[k.as_()] = self.len;
+        self.dense[self.len.as_()] = k;
+        self.len = self.len.add(K::one());
+    }
 
-        for k in a.iter() {
+    #[inline]
+    pub(crate) fn insert_all_seq_uncheck<I: IntoIterator<Item = K>>(&mut self, a: I) {
+        for k in a {
             #[cfg(feature = "bitmask")]
             {
                 self.mask.set(k.as_(), true);
             }
             self.sparse[k.as_()] = self.len;
+            self.dense[self.len.as_()] = k;
             self.len = self.len.add(K::one());
-            // self.len += 1;
         }
     }
 
-    // TODO: test if `#[inline]` elides calling `f()`
     #[inline]
-    pub(crate) fn delete_one_seq_uncheck<F: FnMut(K, K)>(&mut self, k: K, mut f: F) {
+    pub(crate) fn delete_one_seq_uncheck(&mut self, k: K) {
         #[cfg(feature = "bitmask")]
         {
             self.mask.set(k.as_(), false);
         }
         let s = self.sparse[k.as_()];
         self.len = self.len.sub(K::one());
-        // self.len -= 1;
-        f(s, self.len);
         self.sparse.swap(k.as_(), self.dense[self.len.as_()].as_());
         self.dense.swap(s.as_(), self.len.as_());
     }
 
-    // TODO: test if `#[inline]` elides calling `f()`
     #[inline]
-    /// "swap + pop" (seq) deletion of multiple entries
-    pub(crate) fn delete_all_seq_uncheck<F: FnMut(K, K)>(&mut self, a: &[K], mut f: F) {
+    pub(crate) fn delete_all_seq_uncheck<I: IntoIterator<Item = K>>(&mut self, a: I) {
         // < 25%
-        for &k in a {
+        for k in a {
             #[cfg(feature = "bitmask")]
             {
                 self.mask.set(k.as_(), false);
             }
             let s = self.sparse[k.as_()];
             self.len = self.len.sub(K::one());
-            // self.len -= 1;
-            f(s, self.len);
             self.sparse.swap(k.as_(), self.dense[self.len.as_()].as_());
             self.dense.swap(s.as_(), self.len.as_());
         }
     }
 
-    pub(crate) fn filter_all_incl(&self, k: &[K]) -> Vec<K> {
+    #[inline]
+    pub(crate) fn filter_all_dups<I: IntoIterator<Item = K>>(
+        &self,
+        k: I,
+    ) -> impl Iterator<Item = K> + use<I, K> {
         let mut bit = bitvec::bitbox![0; Self::MAX_K];
-        let mut res = Vec::with_capacity(k.len());
-
-        for i in k.iter() {
-            if !bit[i.as_()] && self.contains(*i) {
+        k.into_iter().filter(move |&i| {
+            if branches::likely(!bit[i.as_()]) {
                 bit.set(i.as_(), true);
-                res.push(*i);
+                true
+            } else {
+                false
             }
-        }
-
-        res
-    }
-
-    pub(crate) fn filter_all_excl(&self, k: &[K]) -> Vec<K> {
-        let mut bit = bitvec::bitbox![0; Self::MAX_K];
-        let mut res = Vec::with_capacity(k.len());
-
-        for i in k.iter() {
-            if !bit[i.as_()] && !self.contains(*i) {
-                bit.set(i.as_(), true);
-                res.push(*i);
-            }
-        }
-
-        res
+        })
     }
 }
 

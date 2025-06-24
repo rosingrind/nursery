@@ -31,13 +31,13 @@ where
     /// Batched insert operation
     ///
     /// Returns existing's owned value vec
-    fn insert_all(&mut self, k: &[K]); // TODO: replace with &[K]
+    fn insert_all<I: IntoIterator<Item = K>>(&mut self, k: I);
 
     /// Delete entry and return operation's result
     fn delete_one(&mut self, k: K) -> bool;
 
     /// Batched delete operation
-    fn delete_all(&mut self, k: &[K]); // TODO: replace with &[K]
+    fn delete_all<I: IntoIterator<Item = K>>(&mut self, k: I);
 }
 
 impl<K> SetMut<K> for SparSet<K>
@@ -64,7 +64,7 @@ where
                 vec.push(*item);
             }
         }
-        self.delete_all_seq_uncheck(&vec, |_, _| {});
+        self.delete_all_seq_uncheck(vec);
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
@@ -85,43 +85,34 @@ where
     fn insert_one(&mut self, k: K) -> bool {
         assert!(k.as_() <= self.sparse.len());
 
-        if self.contains(k) {
-            return false;
+        if branches::likely(!self.contains(k)) {
+            self.insert_one_seq_uncheck(k);
+            true
+        } else {
+            false
         }
-
-        #[cfg(feature = "bitmask")]
-        {
-            self.mask.set(k.as_(), true);
-        }
-        self.sparse[k.as_()] = self.len;
-        self.dense[self.len.as_()] = k;
-        self.len = self.len.add(K::one());
-        // self.len += 1;
-
-        true
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn insert_all(&mut self, k: &[K]) {
-        let s = self.filter_all_excl(k);
-
-        self.insert_all_seq_uncheck(&s);
+    fn insert_all<I: IntoIterator<Item = K>>(&mut self, k: I) {
+        for s in k {
+            let _ = self.insert_one(s);
+        }
     }
 
     fn delete_one(&mut self, k: K) -> bool {
-        if !self.contains(k) {
-            return false;
+        if branches::likely(self.contains(k)) {
+            self.delete_one_seq_uncheck(k);
+            true
+        } else {
+            false
         }
-
-        self.delete_one_seq_uncheck(k, |_, _| {});
-
-        true
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn delete_all(&mut self, k: &[K]) {
-        let s = self.filter_all_incl(k);
-
-        self.delete_all_seq_uncheck(&s, |_, _| {});
+    fn delete_all<I: IntoIterator<Item = K>>(&mut self, k: I) {
+        for s in k {
+            let _ = self.delete_one(s);
+        }
     }
 }

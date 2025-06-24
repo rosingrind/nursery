@@ -78,9 +78,9 @@ fn batched_ops() {
     );
     assert_eq!(map.len(), 4);
 
-    map.delete_all(&[5, 4, 7, 2]);
+    map.delete_all([5, 4, 7, 2]);
     assert_eq!(map.as_vals(), &["2"]);
-    map.delete_all(&[5, 4, 7, 2]);
+    map.delete_all([5, 4, 7, 2]);
     assert_eq!(map.as_vals(), &["2"]);
     assert_eq!(map.query_one(6), Some(&"2"));
     assert_eq!(map.query_all(&[6]).collect::<Vec<_>>(), [&"2"]);

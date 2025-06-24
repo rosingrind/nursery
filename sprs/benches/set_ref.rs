@@ -10,13 +10,13 @@ use rayon::prelude::*;
 
 #[divan::bench()]
 fn contains(bencher: Bencher) {
-    let mut set = SparSet::<Key>::new(KEY_MAX);
-    set.insert_one(5);
+    let mut set = SparSet::<Key>::new(0);
+    set.insert_one(0);
 
     bencher.bench(move || {
         let mut set = black_box(set.clone());
-        black_box(&mut set).contains(black_box(5));
         black_box(&mut set).contains(black_box(0));
+        black_box(&mut set).contains(black_box(5));
     });
 }
 

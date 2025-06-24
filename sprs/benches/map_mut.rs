@@ -6,14 +6,10 @@ use sprs::{
 };
 
 #[divan::bench()]
-fn insert_one(bencher: Bencher) {
-    let map = SparMap::<Key, &str>::new(KEY_MAX);
-
-    bencher.bench(|| {
-        let mut map = black_box(map.clone());
-        black_box(&mut map).insert_one(black_box(5), black_box("5"));
-        black_box(&mut map).insert_one(black_box(5), black_box("5"));
-    });
+fn insert_one() {
+    let mut map = SparMap::<Key, &str>::new(0);
+    black_box(&mut map).insert_one(black_box(0), black_box("0"));
+    black_box(&mut map).insert_one(black_box(0), black_box("0"));
 }
 
 #[divan::bench()]
@@ -36,12 +32,12 @@ fn insert_all(bencher: Bencher) {
 
 #[divan::bench()]
 fn delete_one(bencher: Bencher) {
-    let mut map = SparMap::<Key, &str>::new(KEY_MAX);
-    map.insert_one(5, "5");
+    let mut map = SparMap::<Key, &str>::new(0);
+    map.insert_one(0, "0");
 
     bencher.bench(|| {
         let mut map = black_box(map.clone());
-        black_box(&mut map).delete_one(black_box(5));
+        black_box(&mut map).delete_one(black_box(0));
         black_box(&mut map).delete_one(black_box(5));
     });
 }

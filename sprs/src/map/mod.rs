@@ -45,7 +45,7 @@ where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     V: Send + Sync + Copy,
 {
-    pub const MAX_K: usize = 2usize.pow(size_of::<K>() as u32 * 8) - 1;
+    pub const MAX_K: usize = SparSet::<K>::MAX_K;
 
     #[cfg_attr(feature = "inline-more", inline)]
     pub fn new(N: usize) -> Self {
@@ -140,20 +140,28 @@ where
         self.keys.contains(i)
     }
 
-    pub(crate) fn filter_all_excl(&self, kv: Vec<(K, V)>) -> (Vec<K>, Vec<V>) {
-        let mut bit = bitvec::bitbox![0; Self::MAX_K];
-        let mut k = Vec::with_capacity(kv.len());
-        let mut v = Vec::with_capacity(kv.len());
-
-        for (i, x) in kv.into_iter() {
-            if !bit[i.as_()] && !self.keys.contains(i) {
-                bit.set(i.as_(), true);
-                k.push(i);
-                v.push(x);
-            }
+    #[inline]
+    pub(crate) fn delete_all_seq_uncheck<I: IntoIterator<Item = K>>(&mut self, a: I) {
+        for s in a {
+            let i = self.keys.as_index_one_uncheck(s);
+            self.keys.delete_one_seq_uncheck(s);
+            self.vals.swap(i.as_(), self.len().as_());
         }
+    }
 
-        (k, v)
+    pub(crate) fn filter_all_dups<I: IntoIterator<Item = (K, V)>>(
+        &self,
+        kv: I,
+    ) -> impl Iterator<Item = (K, V)> + use<I, K, V> {
+        let mut bit = bitvec::bitbox![0; Self::MAX_K];
+        kv.into_iter().filter(move |&(i, _)| {
+            if branches::likely(!bit[i.as_()]) {
+                bit.set(i.as_(), true);
+                true
+            } else {
+                false
+            }
+        })
     }
 }
 

@@ -10,9 +10,9 @@ use rayon::prelude::*;
 
 #[divan::bench()]
 fn insert_one() {
-    let mut set = black_box(SparSet::<Key>::new(KEY_MAX));
-    black_box(&mut set).insert_one(black_box(5));
-    black_box(&mut set).insert_one(black_box(5));
+    let mut set = black_box(SparSet::<Key>::new(0));
+    black_box(&mut set).insert_one(black_box(0));
+    black_box(&mut set).insert_one(black_box(0));
 }
 
 #[divan::bench()]
@@ -29,12 +29,12 @@ fn insert_all(bencher: Bencher) {
 
 #[divan::bench()]
 fn delete_one(bencher: Bencher) {
-    let mut set = SparSet::<Key>::new(KEY_MAX);
-    set.insert_one(black_box(5));
+    let mut set = SparSet::<Key>::new(0);
+    set.insert_one(black_box(0));
 
     bencher.bench(|| {
         let mut set = black_box(set.clone());
-        black_box(&mut set).delete_one(black_box(5));
+        black_box(&mut set).delete_one(black_box(0));
         black_box(&mut set).delete_one(black_box(5));
     });
 }

@@ -47,9 +47,9 @@ fn delete_all() {
         .map(|(k, v)| (*k, v.as_str()))
         .collect::<Vec<_>>();
     map.insert_all(all.clone());
-    map.delete_all(&vec_b);
+    map.delete_all(vec_b);
     assert_eq!(map.as_vals(), [all[Key::MAX as usize - 1].1]);
-    map.delete_all(&vec_b);
+    map.delete_all(vec_b);
     assert_eq!(map.as_vals(), [all[Key::MAX as usize - 1].1]);
     assert_eq!(map.query_one(Key::MAX - 1), Some(&"65534"));
     assert_eq!(map.query_all(&vec_a).collect::<Vec<_>>(), [&"65534"]);

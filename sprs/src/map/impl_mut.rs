@@ -31,13 +31,13 @@ where
     fn insert_one(&mut self, k: K, v: V) -> Option<V>;
 
     /// Batched insert operation
-    fn insert_all(&mut self, kv: Vec<(K, V)>);
+    fn insert_all<I: IntoIterator<Item = (K, V)>>(&mut self, kv: I);
 
     /// Delete entry and return it's value if deleted
     fn delete_one(&mut self, k: K) -> Option<V>;
 
     /// Batched delete operation
-    fn delete_all(&mut self, k: &[K]);
+    fn delete_all<I: IntoIterator<Item = K>>(&mut self, k: I);
 }
 
 impl<K, V> MapMut<K, V> for SparMap<K, V>
@@ -61,7 +61,7 @@ where
                 vec.push(*k);
             }
         }
-        self.delete_all(&vec);
+        self.delete_all_seq_uncheck(vec);
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
@@ -84,39 +84,76 @@ where
 
     #[cfg_attr(feature = "inline-more", inline)]
     fn insert_one(&mut self, k: K, v: V) -> Option<V> {
-        if !self.keys.insert_one(k) {
+        if branches::likely(!self.keys.insert_one(k)) {
             let k = self.keys.as_index_one(k).unwrap();
             let old = self.vals[k.as_()];
             self.vals[k.as_()] = v;
-            return Some(old);
+            Some(old)
+        } else {
+            self.vals[self.keys.len().as_() - 1] = v;
+            None
         }
-        self.vals[self.keys.len().as_() - 1] = v;
-        None
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn insert_all(&mut self, kv: Vec<(K, V)>) {
-        let (k, v) = self.filter_all_excl(kv);
+    fn insert_all<I: IntoIterator<Item = (K, V)>>(&mut self, kv: I) {
+        // prefetch first element
+        let mut iter = kv
+            .into_iter()
+            .inspect(|x| unsafe { branches::prefetch_read_data(std::ptr::from_ref(x).cast(), 1) })
+            .peekable();
+        std::hint::black_box(iter.peek());
 
-        let len = self.len().as_();
-        self.keys.insert_all_seq_uncheck(&k);
-        self.vals[len..(len + v.len())].copy_from_slice(v.as_slice());
+        for (k, v) in iter {
+            unsafe {
+                branches::prefetch_write_data(
+                    self.vals.as_mut_ptr().add(self.keys.len().as_()).cast(),
+                    0,
+                )
+            };
+            if branches::likely(self.keys.insert_one(k)) {
+                self.vals[self.keys.len().as_() - 1] = v;
+            } else {
+                let k = self.keys.as_index_one(k).unwrap();
+                self.vals[k.as_()] = v;
+            }
+        }
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
     fn delete_one(&mut self, k: K) -> Option<V> {
-        self.contains(k).then(|| {
-            self.keys
-                .delete_one_seq_uncheck(k, |k, l| self.vals.swap(k.as_(), l.as_()));
-            self.vals[self.len().as_()]
-        })
+        if let Some(i) = self.keys.as_index_one(k) {
+            self.keys.delete_one_seq_uncheck(k);
+            self.vals.swap(i.as_(), self.len().as_());
+            Some(self.vals[self.len().as_()])
+        } else {
+            None
+        }
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
-    fn delete_all(&mut self, k: &[K]) {
-        self.keys
-            .delete_all_seq_uncheck(&self.keys.filter_all_incl(k), |k, l| {
-                self.vals.swap(k.as_(), l.as_())
-            });
+    fn delete_all<I: IntoIterator<Item = K>>(&mut self, k: I) {
+        // prefetch first element
+        let mut iter = k
+            .into_iter()
+            .inspect(|x| unsafe { branches::prefetch_read_data(std::ptr::from_ref(x).cast(), 1) })
+            .peekable();
+        std::hint::black_box(iter.peek());
+
+        for s in iter {
+            unsafe {
+                branches::prefetch_write_data(
+                    self.vals
+                        .as_mut_ptr()
+                        .add(self.keys.len().as_().saturating_sub(1))
+                        .cast(),
+                    0,
+                )
+            };
+            if let Some(i) = self.keys.as_index_one(s) {
+                self.keys.delete_one_seq_uncheck(s);
+                self.vals.swap(i.as_(), self.len().as_());
+            }
+        }
     }
 }

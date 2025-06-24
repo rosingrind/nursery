@@ -73,8 +73,8 @@ fn compare_ops() {
     let mut a = MockSet::new(KEY_MAX);
     let mut b = MockSet::new(KEY_MAX);
 
-    a.insert_all(&[5, 2]);
-    b.insert_all(&[5, 3]);
+    a.insert_all([5, 2]);
+    b.insert_all([5, 3]);
 
     assert_eq!(vec![&5], {
         let mut x = a.intersection(&b).collect::<Vec<_>>();
@@ -135,9 +135,9 @@ fn compare_ops() {
 fn batched_ops() {
     let mut set = MockSet::new(KEY_MAX);
 
-    set.insert_all(&[4, 5, 6, 7]);
+    set.insert_all([4, 5, 6, 7]);
     assert_eq!(set.as_slice(), [4, 5, 6, 7]);
-    set.insert_all(&[4, 5, 6, 7]);
+    set.insert_all([4, 5, 6, 7]);
     assert_eq!(set.as_slice(), [4, 5, 6, 7]);
     assert_eq!(set.as_index_one(6), Some(2));
     assert_eq!(
@@ -147,9 +147,9 @@ fn batched_ops() {
     assert_eq!(set.len, 4);
     assert_eq!(set.len(), set.len);
 
-    set.delete_all(&[5, 5, 5, 4, 4, 4, 7, 2, 2, 2, 5, 5, 5]);
+    set.delete_all([5, 5, 5, 4, 4, 4, 7, 2, 2, 2, 5, 5, 5]);
     assert_eq!(set.as_slice(), [6]);
-    set.delete_all(&[5, 5, 5, 4, 4, 4, 7, 2, 2, 2, 5, 5, 5]);
+    set.delete_all([5, 5, 5, 4, 4, 4, 7, 2, 2, 2, 5, 5, 5]);
     assert_eq!(set.as_slice(), [6]);
     assert_eq!(set.as_index_one(6), Some(0));
     assert_eq!(set.as_index_all(set.as_slice()).collect::<Vec<_>>(), [0]);
@@ -434,7 +434,7 @@ fn test_extend_ref() {
 #[test]
 fn test_retain() {
     const XS: [Key; 6] = [1, 2, 3, 4, 5, 6];
-    let mut set: MockSet = From::from(XS.as_slice());
+    let mut set: MockSet = MockSet::from_iter(XS);
     set.retain(|&k| k % 2 == 0);
     assert_eq!(set.len(), 3);
     assert!(set.contains(2));
@@ -446,7 +446,7 @@ fn test_retain() {
 fn test_recall() {
     const XS: std::ops::Range<Key> = 0..8;
     {
-        let mut set: MockSet = From::from(XS.collect::<Vec<_>>().as_slice());
+        let mut set: MockSet = MockSet::from_iter(XS);
         let drained = set.recall(|&k| k % 2 == 0);
         let mut out = drained.collect::<Vec<_>>();
         out.sort_unstable();
@@ -455,7 +455,7 @@ fn test_recall() {
         assert_eq!(set.len(), 4);
     }
     {
-        let mut set: MockSet = From::from(XS.collect::<Vec<_>>().as_slice());
+        let mut set: MockSet = MockSet::from_iter(XS);
         set.recall(|&k| k % 2 == 0).for_each(drop);
         assert_eq!(set.len(), 4, "Removes non-matching items on drop");
     }
