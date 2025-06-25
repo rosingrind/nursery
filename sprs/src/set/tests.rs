@@ -10,8 +10,8 @@ fn regular_ops() {
 
     assert_eq!(set.dense[..set.len as usize], []);
     assert_eq!(set.as_slice(), &[]);
-    assert_eq!(set.as_index_all(&[]).count(), 0);
-    assert_eq!(set.as_index_all(&[1, 2, 3]).count(), 0);
+    assert_eq!(set.as_index_all([]).count(), 0);
+    assert_eq!(set.as_index_all([1, 2, 3]).count(), 0);
     assert_eq!(set.len, 0);
     assert_eq!(set.len(), 0);
 
@@ -22,7 +22,7 @@ fn regular_ops() {
     assert_eq!(set.sparse[5], 0);
     assert_eq!(set.as_slice(), &[5]);
     assert_eq!(set.as_index_one(5), Some(0));
-    assert_eq!(set.as_index_all(&[5]).collect::<Vec<_>>(), [0]);
+    assert_eq!(set.as_index_all([5]).collect::<Vec<_>>(), [0]);
     assert_eq!(set.len, 1);
     assert_eq!(set.len(), set.len);
 
@@ -32,7 +32,7 @@ fn regular_ops() {
     assert_eq!(set.dense[..set.len as usize], []);
     assert_eq!(set.as_slice(), &[]);
     assert_eq!(set.as_index_one(5), None);
-    assert_eq!(set.as_index_all(&[5]).count(), 0);
+    assert_eq!(set.as_index_all([5]).count(), 0);
     assert_eq!(set.len, 0);
     assert_eq!(set.len(), set.len);
 
@@ -42,7 +42,7 @@ fn regular_ops() {
         assert_eq!(set.sparse[k as usize], i as Key);
         assert_eq!(set.as_slice()[i], k);
         assert_eq!(set.as_index_one(k), Some(i as Key));
-        assert_eq!(set.as_index_all(&[k]).collect::<Vec<_>>(), [i as Key]);
+        assert_eq!(set.as_index_all([k]).collect::<Vec<_>>(), [i as Key]);
         assert_eq!(set.len, i as Key + 1);
         assert_eq!(set.len(), set.len);
     }
@@ -133,7 +133,7 @@ fn batched_ops() {
     assert_eq!(set.as_slice(), [4, 5, 6, 7]);
     assert_eq!(set.as_index_one(6), Some(2));
     assert_eq!(
-        set.as_index_all(&[5, 4, 7, 6]).collect::<Vec<_>>(),
+        set.as_index_all([5, 4, 7, 6]).collect::<Vec<_>>(),
         [1, 0, 3, 2]
     );
     assert_eq!(set.len, 4);
@@ -144,7 +144,11 @@ fn batched_ops() {
     set.delete_all([5, 5, 5, 4, 4, 4, 7, 2, 2, 2, 5, 5, 5]);
     assert_eq!(set.as_slice(), [6]);
     assert_eq!(set.as_index_one(6), Some(0));
-    assert_eq!(set.as_index_all(set.as_slice()).collect::<Vec<_>>(), [0]);
+    assert_eq!(
+        set.as_index_all(set.as_slice().to_vec())
+            .collect::<Vec<_>>(),
+        [0]
+    );
     assert_eq!(set.len, 1);
     assert_eq!(set.len(), set.len);
 }

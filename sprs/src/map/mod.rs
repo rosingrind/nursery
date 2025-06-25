@@ -100,23 +100,30 @@ where
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
-    pub fn query_all(&self, k: &[K]) -> impl Iterator<Item = &V> {
+    pub fn query_all<I: IntoIterator<Item = K>>(&self, k: I) -> impl Iterator<Item = &V> {
         self.keys.as_index_all(k).map(|k| &self.vals[k.as_()])
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(feature = "rayon")]
-    pub fn query_all(&self, k: &[K]) -> impl ParallelIterator<Item = &V>
+    pub fn query_all<I: IntoParallelIterator<Item = K>>(
+        &self,
+        k: I,
+    ) -> impl ParallelIterator<Item = &V>
     where
         K: Send + Sync,
         V: Send + Sync,
+        <I as IntoParallelIterator>::Iter: IndexedParallelIterator,
     {
         self.keys.as_index_all(k).map(|k| &self.vals[k.as_()])
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
-    pub fn query_all_mut(&mut self, k: &[K]) -> impl Iterator<Item = &mut V> {
+    pub fn query_all_mut<I: IntoIterator<Item = K>>(
+        &mut self,
+        k: I,
+    ) -> impl Iterator<Item = &mut V> {
         self.keys.as_index_all(k).map(|k| {
             let ptr = self.vals.as_ptr();
             let raw = ptr as *mut V;
@@ -126,10 +133,14 @@ where
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(feature = "rayon")]
-    pub fn query_all_mut(&mut self, k: &[K]) -> impl ParallelIterator<Item = &mut V>
+    pub fn query_all_mut<I: IntoParallelIterator<Item = K>>(
+        &mut self,
+        k: I,
+    ) -> impl ParallelIterator<Item = &mut V>
     where
         K: Send + Sync,
         V: Send + Sync,
+        <I as IntoParallelIterator>::Iter: IndexedParallelIterator,
     {
         self.keys.as_index_all(k).map(|k| {
             let ptr = self.vals.as_ptr();

@@ -1,11 +1,12 @@
 use std::hint::black_box;
 
 use bencher::Bencher;
-use itertools::Itertools;
 use sprs::{
     KEY_MAX, Key,
     map::{MapMut, SparMap},
 };
+
+const VEC: std::ops::Range<u16> = 0..Key::MAX;
 
 fn insert_one(b: &mut Bencher) {
     b.iter(|| {
@@ -16,7 +17,7 @@ fn insert_one(b: &mut Bencher) {
 }
 
 fn insert_all(b: &mut Bencher) {
-    let tmp = black_box(0..Key::MAX)
+    let tmp = black_box(VEC)
         .map(|x| (x, x.to_string()))
         .collect::<Box<_>>();
     let vec = tmp
@@ -41,20 +42,19 @@ fn delete_one(b: &mut Bencher) {
 }
 
 fn delete_all(b: &mut Bencher) {
-    let tmp = black_box(0..Key::MAX)
+    let tmp = black_box(VEC)
         .map(|x| (x, x.to_string()))
         .collect::<Box<_>>();
     let add = tmp
         .iter()
         .map(|(k, v)| (*k, v.as_str()))
         .collect::<Box<_>>();
-    let del = black_box(0..Key::MAX).collect_array::<KEY_MAX>().unwrap();
 
     b.iter(|| {
         let mut map = SparMap::<Key, &str>::new(black_box(KEY_MAX));
         map.insert_all(add.clone());
-        map.delete_all(del);
-        map.delete_all(del);
+        map.delete_all(VEC);
+        map.delete_all(VEC);
     });
 }
 

@@ -78,20 +78,24 @@ where
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
     /// Returns dense indexes of keys
-    pub fn as_index_all(&self, k: &[K]) -> impl Iterator<Item = K> {
-        k.iter()
-            .filter_map(|k| self.contains(*k).then_some(self.sparse[k.as_()]))
+    pub fn as_index_all<I: IntoIterator<Item = K>>(&self, k: I) -> impl Iterator<Item = K> {
+        k.into_iter()
+            .filter_map(|k| self.contains(k).then_some(self.sparse[k.as_()]))
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(feature = "rayon")]
     /// Returns dense indexes of keys (parallel)
-    pub fn as_index_all(&self, k: &[K]) -> impl ParallelIterator<Item = K>
+    pub fn as_index_all<I: IntoParallelIterator<Item = K>>(
+        &self,
+        k: I,
+    ) -> impl ParallelIterator<Item = K>
     where
         K: Send + Sync,
+        <I as IntoParallelIterator>::Iter: IndexedParallelIterator,
     {
-        k.par_iter()
-            .filter_map(|k| self.contains(*k).then_some(self.sparse[k.as_()]))
+        k.into_par_iter()
+            .filter_map(|k| self.contains(k).then_some(self.sparse[k.as_()]))
     }
 
     #[cfg_attr(feature = "inline-more", inline)]

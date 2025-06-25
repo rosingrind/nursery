@@ -20,8 +20,8 @@ where
     /// ```
     /// use sprs::set::SparSet;
     ///
-    /// let mut a: SparSet<u16> = From::from([3, 4, 5].as_slice());
-    /// let b: SparSet<u16> = From::from([1, 2, 3].as_slice());
+    /// let mut a: SparSet<u16> = (3..=5).collect();
+    /// let b: SparSet<u16> = (1..=3).collect();
     ///
     /// a |= &b;
     ///
@@ -39,8 +39,8 @@ where
     /// ```should_panic
     /// # use sprs::set::SparSet;
     /// #
-    /// let a: SparSet<u16> = From::from([3, 4, 5].as_slice());
-    /// let mut b: SparSet<u16> = From::from([1, 2, 3].as_slice());
+    /// let a: SparSet<u16> = (3..=5).collect();
+    /// let mut b: SparSet<u16> = (1..=3).collect();
     ///
     /// b |= &a;
     /// ```
@@ -65,8 +65,8 @@ where
     /// ```
     /// use sprs::set::SparSet;
     ///
-    /// let mut a: SparSet<u16> = From::from([1, 2, 3].as_slice());
-    /// let b: SparSet<u16> = From::from([2, 3, 4].as_slice());
+    /// let mut a: SparSet<u16> = (1..=3).collect();
+    /// let b: SparSet<u16> = (2..=4).collect();
     ///
     /// a &= &b;
     ///
@@ -94,8 +94,8 @@ where
     /// ```
     /// use sprs::set::SparSet;
     ///
-    /// let mut a: SparSet<u16> = From::from([3, 4, 5].as_slice());
-    /// let b: SparSet<u16> = From::from([1, 2, 3].as_slice());
+    /// let mut a: SparSet<u16> = (3..=5).collect();
+    /// let b: SparSet<u16> = (1..=3).collect();
     ///
     /// a ^= &b;
     ///
@@ -113,8 +113,8 @@ where
     /// ```should_panic
     /// # use sprs::set::SparSet;
     /// #
-    /// let a: SparSet<u16> = From::from([3, 4, 5].as_slice());
-    /// let mut b: SparSet<u16> = From::from([1, 2, 3].as_slice());
+    /// let a: SparSet<u16> = (3..=5).collect();
+    /// let mut b: SparSet<u16> = (1..=3).collect();
     ///
     /// b ^= &a;
     /// ```
@@ -141,8 +141,8 @@ where
     /// ```
     /// use sprs::set::SparSet;
     ///
-    /// let mut a: SparSet<u16> = From::from([1, 2, 3].as_slice());
-    /// let b: SparSet<u16> = From::from([3, 4, 5].as_slice());
+    /// let mut a: SparSet<u16> = (1..=3).collect();
+    /// let b: SparSet<u16> = (3..=5).collect();
     ///
     /// a -= &b;
     ///

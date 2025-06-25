@@ -3,9 +3,6 @@ use std::hint::black_box;
 use bencher::Bencher;
 use sparsey::World;
 
-#[cfg(feature = "rayon")]
-use rayon::prelude::*;
-
 #[derive(Debug, PartialEq, Eq)]
 struct Data(String);
 

@@ -1,7 +1,6 @@
 use std::hint::black_box;
 
 use bencher::Bencher;
-use itertools::Itertools;
 use sprs::{
     KEY_MAX, Key,
     map::{MapMut, SparMap},
@@ -29,8 +28,9 @@ fn query_one(b: &mut Bencher) {
 }
 
 fn query_all(b: &mut Bencher) {
-    let vec = black_box(0..Key::MAX).collect_array::<KEY_MAX>().unwrap();
-    let tmp = black_box(0..Key::MAX)
+    const VEC: std::ops::Range<u16> = 0..Key::MAX;
+
+    let tmp = black_box(VEC)
         .map(|x| (x, x.to_string()))
         .collect::<Box<_>>();
     let add = tmp
@@ -41,8 +41,8 @@ fn query_all(b: &mut Bencher) {
     b.iter(|| {
         let mut map = SparMap::<Key, &str>::new(black_box(KEY_MAX));
         map.insert_all(add.clone());
-        black_box(map.query_all(&vec).collect::<Box<_>>());
-        black_box(map.query_all(&vec).collect::<Box<_>>());
+        black_box(map.query_all(VEC).collect::<Box<_>>());
+        black_box(map.query_all(VEC).collect::<Box<_>>());
     });
 }
 

@@ -21,7 +21,7 @@ fn regular_ops() {
     assert_eq!(map.vals[..map.len() as usize], ["0"]);
     assert_eq!(map.as_vals(), ["0"]);
     assert_eq!(map.query_one(5), Some(&"0"));
-    assert_eq!(map.query_all(&[5]).collect::<Vec<_>>(), [&"0"]);
+    assert_eq!(map.query_all([5]).collect::<Vec<_>>(), [&"0"]);
     assert_eq!(map.len(), 1);
 
     assert!(map.delete_one(5).is_some());
@@ -30,7 +30,7 @@ fn regular_ops() {
     assert!(map.vals[..map.len() as usize].is_empty());
     assert!(map.as_vals().is_empty());
     assert_eq!(map.query_one(5), None);
-    assert_eq!(map.query_all(&[5]).count(), 0);
+    assert_eq!(map.query_all([5]).count(), 0);
     assert_eq!(map.len(), 0);
 
     let range = (4..8).map(|x| (x, x.to_string())).collect::<Vec<_>>();
@@ -41,7 +41,7 @@ fn regular_ops() {
         assert_eq!(map.vals[i], v.as_str());
         assert_eq!(map.as_vals()[i], v.as_str());
         assert_eq!(map.query_one(*k), Some(&v.as_str()));
-        assert_eq!(map.query_all(&[*k]).collect::<Vec<_>>(), [&v.as_str()]);
+        assert_eq!(map.query_all([*k]).collect::<Vec<_>>(), [&v.as_str()]);
         assert_eq!(map.len(), i as Key + 1);
     }
     assert!(map.query_one(3).is_none());
@@ -73,7 +73,7 @@ fn batched_ops() {
     );
     assert_eq!(map.as_vals(), &["0", "1", "2", "3"]);
     assert_eq!(
-        map.query_all(&[5, 4, 7, 6]).collect::<Vec<_>>(),
+        map.query_all([5, 4, 7, 6]).collect::<Vec<_>>(),
         [&"1", &"0", &"3", &"2"]
     );
     assert_eq!(map.len(), 4);
@@ -83,7 +83,7 @@ fn batched_ops() {
     map.delete_all([5, 4, 7, 2]);
     assert_eq!(map.as_vals(), &["2"]);
     assert_eq!(map.query_one(6), Some(&"2"));
-    assert_eq!(map.query_all(&[6]).collect::<Vec<_>>(), [&"2"]);
+    assert_eq!(map.query_all([6]).collect::<Vec<_>>(), [&"2"]);
     assert_eq!(map.len(), 1);
 }
 
@@ -627,9 +627,9 @@ fn test_get_many_mut() {
     map.insert_one(20, "baz");
     map.insert_one(30, "qux");
 
-    let xs = map.query_all_mut(&[0, 30]);
+    let xs = map.query_all_mut([0, 30]);
     assert_eq!(xs.collect::<Vec<_>>(), vec![&mut "foo", &mut "qux"]);
 
-    let xs = map.query_all_mut(&[0, 5]);
+    let xs = map.query_all_mut([0, 5]);
     assert_eq!(xs.collect::<Vec<_>>(), vec![&mut "foo"]);
 }

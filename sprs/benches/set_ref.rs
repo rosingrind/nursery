@@ -1,7 +1,6 @@
 use std::hint::black_box;
 
 use bencher::Bencher;
-use itertools::Itertools;
 use sprs::{
     KEY_MAX, Key,
     set::{SetMut, SetRef, SparSet},
@@ -9,6 +8,8 @@ use sprs::{
 
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;
+
+const VEC: std::ops::Range<u16> = 0..Key::MAX;
 
 fn contains(b: &mut Bencher) {
     b.iter(move || {
@@ -20,17 +21,11 @@ fn contains(b: &mut Bencher) {
 }
 
 fn intersection(b: &mut Bencher) {
-    let vec_l = black_box(0..Key::MAX).collect_array::<KEY_MAX>().unwrap();
-    let vec_r = black_box(0..Key::MAX)
-        .rev()
-        .collect_array::<KEY_MAX>()
-        .unwrap();
-
     b.iter(|| {
         let mut l = SparSet::<Key>::new(black_box(KEY_MAX));
         let mut r = SparSet::<Key>::new(black_box(KEY_MAX));
-        l.insert_all(vec_l);
-        r.insert_all(vec_r);
+        l.insert_all(VEC);
+        r.insert_all(VEC.rev());
 
         black_box(l.intersection(&r).collect::<Box<_>>());
         black_box(r.intersection(&l).collect::<Box<_>>());
@@ -38,17 +33,11 @@ fn intersection(b: &mut Bencher) {
 }
 
 fn union(b: &mut Bencher) {
-    let vec_l = black_box(0..Key::MAX).collect_array::<KEY_MAX>().unwrap();
-    let vec_r = black_box(0..Key::MAX)
-        .rev()
-        .collect_array::<KEY_MAX>()
-        .unwrap();
-
     b.iter(|| {
         let mut l = SparSet::<Key>::new(black_box(KEY_MAX));
         let mut r = SparSet::<Key>::new(black_box(KEY_MAX));
-        l.insert_all(vec_l);
-        r.insert_all(vec_r);
+        l.insert_all(VEC);
+        r.insert_all(VEC.rev());
 
         black_box(l.union(&r).collect::<Box<_>>());
         black_box(r.union(&l).collect::<Box<_>>());
@@ -56,17 +45,11 @@ fn union(b: &mut Bencher) {
 }
 
 fn difference(b: &mut Bencher) {
-    let vec_l = black_box(0..Key::MAX).collect_array::<KEY_MAX>().unwrap();
-    let vec_r = black_box(0..Key::MAX)
-        .rev()
-        .collect_array::<KEY_MAX>()
-        .unwrap();
-
     b.iter(|| {
         let mut l = SparSet::<Key>::new(black_box(KEY_MAX));
         let mut r = SparSet::<Key>::new(black_box(KEY_MAX));
-        l.insert_all(vec_l);
-        r.insert_all(vec_r);
+        l.insert_all(VEC);
+        r.insert_all(VEC.rev());
 
         black_box(l.difference(&r).collect::<Box<_>>());
         black_box(r.difference(&l).collect::<Box<_>>());

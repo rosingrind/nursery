@@ -1,14 +1,12 @@
 use std::hint::black_box;
 
 use bencher::Bencher;
-use itertools::Itertools;
 use sprs::{
     KEY_MAX, Key,
     set::{SetMut, SparSet},
 };
 
-#[cfg(feature = "rayon")]
-use rayon::prelude::*;
+const VEC: std::ops::Range<u16> = 0..Key::MAX;
 
 fn insert_one(b: &mut Bencher) {
     b.iter(|| {
@@ -19,12 +17,10 @@ fn insert_one(b: &mut Bencher) {
 }
 
 fn insert_all(b: &mut Bencher) {
-    let vec = black_box(0..Key::MAX).collect_array::<KEY_MAX>().unwrap();
-
     b.iter(|| {
         let mut set = SparSet::<Key>::new(black_box(KEY_MAX));
-        set.insert_all(vec);
-        set.insert_all(vec);
+        set.insert_all(VEC);
+        set.insert_all(VEC);
     });
 }
 
@@ -38,13 +34,11 @@ fn delete_one(b: &mut Bencher) {
 }
 
 fn delete_all(b: &mut Bencher) {
-    let vec = black_box(0..Key::MAX).collect_array::<KEY_MAX>().unwrap();
-
     b.iter(|| {
         let mut set = SparSet::<Key>::new(black_box(KEY_MAX));
-        set.insert_all(vec);
-        set.delete_all(vec);
-        set.delete_all(vec);
+        set.insert_all(VEC);
+        set.delete_all(VEC);
+        set.delete_all(VEC);
     });
 }
 
