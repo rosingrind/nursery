@@ -46,10 +46,6 @@ where
 {
     #[cfg_attr(feature = "inline-more", inline)]
     fn clear(&mut self) {
-        #[cfg(feature = "bitmask")]
-        {
-            self.mask.fill(false);
-        }
         self.len = K::zero();
     }
 

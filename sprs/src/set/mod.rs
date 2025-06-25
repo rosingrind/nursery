@@ -6,8 +6,6 @@ mod tests;
 
 #[cfg(feature = "bitcode")]
 use bitcode::{Decode, Encode};
-#[cfg(feature = "bitmask")]
-use bitvec::boxed::BitBox;
 use num_traits::{AsPrimitive, Unsigned};
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;
@@ -21,9 +19,6 @@ pub struct SparSet<K: Unsigned> {
     sparse: Box<[K]>,
     len: K,
     dense: Box<[K]>,
-    #[cfg(feature = "bitmask")]
-    /// bit mask representing all set element, requires `feature = "bitmask"`
-    mask: BitBox,
 }
 
 impl<K> Default for SparSet<K>
@@ -51,8 +46,6 @@ where
             sparse: unsafe { Box::new_uninit_slice(N + 1).assume_init() },
             len: K::zero(),
             dense: unsafe { Box::new_uninit_slice(N + 1).assume_init() },
-            #[cfg(feature = "bitmask")]
-            mask: bitvec::bitbox![0; Self::MAX_K],
         }
     }
 
@@ -105,14 +98,7 @@ where
     pub fn contains(&self, k: K) -> bool {
         if branches::likely(k.as_() < self.sparse.len()) {
             let x = self.sparse[k.as_()];
-            #[cfg(not(feature = "bitmask"))]
-            {
-                x < self.len && self.dense[x.as_()] == k
-            }
-            #[cfg(feature = "bitmask")]
-            {
-                self.mask[k.as_()]
-            }
+            x < self.len && self.dense[x.as_()] == k
         } else {
             false
         }
@@ -120,10 +106,6 @@ where
 
     #[inline]
     pub(crate) fn insert_one_seq_uncheck(&mut self, k: K) {
-        #[cfg(feature = "bitmask")]
-        {
-            self.mask.set(k.as_(), true);
-        }
         self.sparse[k.as_()] = self.len;
         self.dense[self.len.as_()] = k;
         self.len = self.len.add(K::one());
@@ -133,10 +115,6 @@ where
     #[inline]
     pub(crate) fn insert_all_seq_uncheck<I: IntoIterator<Item = K>>(&mut self, a: I) {
         for k in a {
-            #[cfg(feature = "bitmask")]
-            {
-                self.mask.set(k.as_(), true);
-            }
             self.sparse[k.as_()] = self.len;
             self.dense[self.len.as_()] = k;
             self.len = self.len.add(K::one());
@@ -145,10 +123,6 @@ where
 
     #[inline]
     pub(crate) fn delete_one_seq_uncheck(&mut self, k: K) {
-        #[cfg(feature = "bitmask")]
-        {
-            self.mask.set(k.as_(), false);
-        }
         let s = self.sparse[k.as_()];
         self.len = self.len.sub(K::one());
         self.sparse.swap(k.as_(), self.dense[self.len.as_()].as_());
@@ -159,10 +133,6 @@ where
     pub(crate) fn delete_all_seq_uncheck<I: IntoIterator<Item = K>>(&mut self, a: I) {
         // < 25%
         for k in a {
-            #[cfg(feature = "bitmask")]
-            {
-                self.mask.set(k.as_(), false);
-            }
             let s = self.sparse[k.as_()];
             self.len = self.len.sub(K::one());
             self.sparse.swap(k.as_(), self.dense[self.len.as_()].as_());

@@ -19,7 +19,6 @@ sparsey = "0.13.3"
 [features]
 default = []
 bitcode = ["dep:bitcode"]
-bitmask = []
 inline-more = []
 nightly = []
 rayon = ["dep:rayon", "sparsey/parallel"]

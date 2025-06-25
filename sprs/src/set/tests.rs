@@ -14,8 +14,6 @@ fn regular_ops() {
     assert_eq!(set.as_index_all(&[1, 2, 3]).count(), 0);
     assert_eq!(set.len, 0);
     assert_eq!(set.len(), 0);
-    #[cfg(feature = "bitmask")]
-    assert!(!set.mask.any());
 
     assert!(set.insert_one(5));
     assert!(!set.insert_one(5));
@@ -27,8 +25,6 @@ fn regular_ops() {
     assert_eq!(set.as_index_all(&[5]).collect::<Vec<_>>(), [0]);
     assert_eq!(set.len, 1);
     assert_eq!(set.len(), set.len);
-    #[cfg(feature = "bitmask")]
-    assert!(set.mask[5]);
 
     assert!(set.delete_one(5));
     assert!(!set.delete_one(5));
@@ -39,8 +35,6 @@ fn regular_ops() {
     assert_eq!(set.as_index_all(&[5]).count(), 0);
     assert_eq!(set.len, 0);
     assert_eq!(set.len(), set.len);
-    #[cfg(feature = "bitmask")]
-    assert!(!set.mask.any());
 
     for (i, k) in (4..8).enumerate() {
         assert!(set.insert_one(k));
@@ -64,8 +58,6 @@ fn regular_ops() {
     assert_eq!(set.as_slice(), &[]);
     assert_eq!(set.len, 0);
     assert_eq!(set.len(), set.len);
-    #[cfg(feature = "bitmask")]
-    assert!(!set.mask.any());
 }
 
 #[test]
