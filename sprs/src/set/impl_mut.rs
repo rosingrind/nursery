@@ -68,11 +68,12 @@ where
     where
         F: Fn(&K) -> bool,
     {
+        let vec: Vec<_> = self.as_slice().into();
+
         Recall {
             f,
             inner: RawRecall {
-                #[allow(clippy::unnecessary_to_owned)]
-                iter: self.as_slice().to_vec().into_iter(),
+                iter: vec.into_iter(),
                 table: self,
             },
         }

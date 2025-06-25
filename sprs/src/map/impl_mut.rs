@@ -69,14 +69,12 @@ where
     where
         F: Fn(&K, &V) -> bool,
     {
+        let vec: Vec<_> = self.iter().map(|(k, v)| (*k, *v)).collect();
+
         Recall {
             f,
             inner: RawRecall {
-                iter: self
-                    .iter()
-                    .map(|(k, v)| (*k, *v))
-                    .collect::<Vec<_>>()
-                    .into_iter(),
+                iter: vec.into_iter(),
                 table: self,
             },
         }

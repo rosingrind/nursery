@@ -42,5 +42,25 @@ fn delete_all(b: &mut Bencher) {
     });
 }
 
-bencher::benchmark_group!(benches, insert_one, insert_all, delete_one, delete_all);
+fn retain_all(b: &mut Bencher) {
+    b.iter(|| {
+        let mut set = SparSet::<Key>::new(black_box(KEY_MAX));
+        set.insert_all(VEC);
+        set.retain(|_| black_box(false));
+        set.retain(|_| black_box(false));
+    });
+}
+
+fn recall_all(b: &mut Bencher) {
+    b.iter(|| {
+        let mut set = SparSet::<Key>::new(black_box(KEY_MAX));
+        set.insert_all(VEC);
+        black_box(set.recall(|_| black_box(true)).collect::<Box<[_]>>());
+        black_box(set.recall(|_| black_box(true)).collect::<Box<[_]>>());
+    });
+}
+
+bencher::benchmark_group!(
+    benches, insert_one, insert_all, delete_one, delete_all, retain_all, recall_all
+);
 bencher::benchmark_main!(benches);

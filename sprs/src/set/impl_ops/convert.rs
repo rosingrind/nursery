@@ -7,7 +7,6 @@ where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd + Ord,
 {
     #[cfg_attr(feature = "inline-more", inline)]
-    // TODO: get max element from iterator without consuming and construct Self
     fn from_iter<I: IntoIterator<Item = K>>(iter: I) -> Self {
         let arr: Box<[K]> = iter.into_iter().collect();
         let mut set = Self::new(arr.iter().max().unwrap().as_());

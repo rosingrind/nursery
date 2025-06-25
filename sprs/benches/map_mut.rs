@@ -58,5 +58,41 @@ fn delete_all(b: &mut Bencher) {
     });
 }
 
-bencher::benchmark_group!(benches, insert_one, insert_all, delete_one, delete_all);
+fn retain_all(b: &mut Bencher) {
+    let tmp = black_box(VEC)
+        .map(|x| (x, x.to_string()))
+        .collect::<Box<_>>();
+    let add = tmp
+        .iter()
+        .map(|(k, v)| (*k, v.as_str()))
+        .collect::<Box<_>>();
+
+    b.iter(|| {
+        let mut map = SparMap::<Key, &str>::new(black_box(KEY_MAX));
+        map.insert_all(add.clone());
+        map.retain(|_, _| black_box(false));
+        map.retain(|_, _| black_box(false));
+    });
+}
+
+fn recall_all(b: &mut Bencher) {
+    let tmp = black_box(VEC)
+        .map(|x| (x, x.to_string()))
+        .collect::<Box<_>>();
+    let add = tmp
+        .iter()
+        .map(|(k, v)| (*k, v.as_str()))
+        .collect::<Box<_>>();
+
+    b.iter(|| {
+        let mut map = SparMap::<Key, &str>::new(black_box(KEY_MAX));
+        map.insert_all(add.clone());
+        black_box(map.recall(|_, _| black_box(true)).collect::<Box<[_]>>());
+        black_box(map.recall(|_, _| black_box(true)).collect::<Box<[_]>>());
+    });
+}
+
+bencher::benchmark_group!(
+    benches, insert_one, insert_all, delete_one, delete_all, retain_all, recall_all
+);
 bencher::benchmark_main!(benches);

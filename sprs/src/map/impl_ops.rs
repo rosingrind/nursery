@@ -48,9 +48,8 @@ where
     V: Copy,
 {
     #[cfg_attr(feature = "inline-more", inline)]
-    // TODO: get max element from iterator without consuming and construct Self
     fn from_iter<I: IntoIterator<Item = (K, V)>>(iter: I) -> Self {
-        let arr: Vec<(K, V)> = iter.into_iter().collect();
+        let arr: Box<[(K, V)]> = iter.into_iter().collect();
         let mut map = Self::new(arr.iter().max_by_key(|(k, _)| k).unwrap().0.as_());
         map.extend(arr);
 
