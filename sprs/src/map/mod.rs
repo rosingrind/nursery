@@ -125,8 +125,7 @@ where
         k: I,
     ) -> impl Iterator<Item = &mut V> {
         self.keys.as_index_all(k).map(|k| {
-            let ptr = self.vals.as_ptr();
-            let raw = ptr as *mut V;
+            let raw = self.vals.as_ptr().cast_mut();
             unsafe { &mut *raw.add(k.as_()) }
         })
     }
@@ -143,8 +142,7 @@ where
         <I as IntoParallelIterator>::Iter: IndexedParallelIterator,
     {
         self.keys.as_index_all(k).map(|k| {
-            let ptr = self.vals.as_ptr();
-            let raw = ptr as *mut V;
+            let raw = self.vals.as_ptr().cast_mut();
             unsafe { &mut *raw.add(k.as_()) }
         })
     }
