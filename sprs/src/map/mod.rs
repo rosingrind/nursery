@@ -159,7 +159,7 @@ where
         for s in a {
             let i = self.keys.as_index_one_uncheck(s);
             self.keys.delete_one_seq_uncheck(s);
-            self.vals.swap(i.as_(), self.len().as_());
+            self.vals[i.as_()] = self.vals[self.len().as_()];
         }
     }
 

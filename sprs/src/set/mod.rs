@@ -129,18 +129,15 @@ where
     pub(crate) fn delete_one_seq_uncheck(&mut self, k: K) {
         let s = self.sparse[k.as_()];
         self.len = self.len.sub(K::one());
-        self.sparse.swap(k.as_(), self.dense[self.len.as_()].as_());
-        self.dense.swap(s.as_(), self.len.as_());
+        self.sparse[self.dense[self.len.as_()].as_()] = self.sparse[k.as_()];
+        self.dense[s.as_()] = self.dense[self.len.as_()];
     }
 
     #[inline]
     pub(crate) fn delete_all_seq_uncheck<I: IntoIterator<Item = K>>(&mut self, a: I) {
         // < 25%
         for k in a {
-            let s = self.sparse[k.as_()];
-            self.len = self.len.sub(K::one());
-            self.sparse.swap(k.as_(), self.dense[self.len.as_()].as_());
-            self.dense.swap(s.as_(), self.len.as_());
+            self.delete_one_seq_uncheck(k);
         }
     }
 

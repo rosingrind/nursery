@@ -124,8 +124,9 @@ where
     fn delete_one(&mut self, k: K) -> Option<V> {
         if let Some(i) = self.keys.as_index_one(k) {
             self.keys.delete_one_seq_uncheck(k);
-            self.vals.swap(i.as_(), self.len().as_());
-            Some(self.vals[self.len().as_()])
+            let v = self.vals[i.as_()];
+            self.vals[i.as_()] = self.vals[self.len().as_()];
+            Some(v)
         } else {
             None
         }
@@ -152,7 +153,7 @@ where
             };
             if let Some(i) = self.keys.as_index_one(s) {
                 self.keys.delete_one_seq_uncheck(s);
-                self.vals.swap(i.as_(), self.len().as_());
+                self.vals[i.as_()] = self.vals[self.len().as_()];
             }
         }
     }
