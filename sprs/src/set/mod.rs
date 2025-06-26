@@ -4,8 +4,13 @@ mod impl_ref;
 #[cfg(test)]
 mod tests;
 
+#[cfg(feature = "mmap")]
+use std::fs::File;
+
 #[cfg(feature = "bitcode")]
 use bitcode::{Decode, Encode};
+#[cfg(feature = "mmap")]
+use memmap2::MmapMut;
 use num_traits::{AsPrimitive, Unsigned};
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;
@@ -14,11 +19,13 @@ pub use impl_mut::SetMut;
 pub use impl_ref::SetRef;
 
 #[cfg_attr(feature = "bitcode", derive(Decode, Encode))]
-#[derive(Clone)]
+#[cfg_attr(not(feature = "mmap"), derive(Clone))]
 pub struct SparSet<K: Unsigned> {
     sparse: Box<[K]>,
     len: K,
     dense: Box<[K]>,
+    #[cfg(feature = "mmap")]
+    mmap: MmapMut,
 }
 
 impl<K> Default for SparSet<K>
@@ -46,6 +53,11 @@ where
             sparse: unsafe { Box::new_uninit_slice(N + 1).assume_init() },
             len: K::zero(),
             dense: unsafe { Box::new_uninit_slice(N + 1).assume_init() },
+            #[cfg(feature = "mmap")]
+            mmap: {
+                let file = File::open("LICENSE-APACHE").unwrap();
+                unsafe { memmap2::MmapMut::map_mut(&file).unwrap() }
+            },
         }
     }
 

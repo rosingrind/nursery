@@ -22,7 +22,7 @@ use crate::{
 // as `x` and `y`, and sort each other - this allows to query
 // by position (find all by `x` in range, by `y` in range, intersect results)
 #[cfg_attr(feature = "bitcode", derive(Decode, Encode))]
-#[derive(Clone)]
+#[cfg_attr(not(feature = "mmap"), derive(Clone))]
 pub struct SparMap<K: Unsigned, V> {
     keys: SparSet<K>,
     // TOOD: a generic storage (availability to store GPU buffer slice instead of this)
