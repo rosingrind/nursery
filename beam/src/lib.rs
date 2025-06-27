@@ -130,8 +130,7 @@ where
     pub fn nodes(&self) -> impl Iterator<Item = &T> {
         self.node_buf
             .chunks_exact(self.node_buf.len() / self.len)
-            .map(|c| c.first().unwrap())
-            .map(|c| unsafe { c.assume_init_ref() })
+            .map(|c| unsafe { c.first().unwrap_unchecked().assume_init_ref() })
             .filter(|c| c.has_fulfilled())
     }
 
@@ -140,8 +139,7 @@ where
     fn nodes_mut(&mut self) -> impl Iterator<Item = &mut T> {
         self.node_buf
             .chunks_exact_mut(self.node_buf.len() / self.len)
-            .map(|c| c.first_mut().unwrap())
-            .map(|c| unsafe { c.assume_init_mut() })
+            .map(|c| unsafe { c.first_mut().unwrap_unchecked().assume_init_mut() })
     }
 
     #[cfg(feature = "rayon")]
@@ -152,8 +150,7 @@ where
     {
         self.node_buf
             .par_chunks_exact_mut(self.node_buf.len() / self.len)
-            .map(|c| c.first_mut().unwrap())
-            .map(|c| unsafe { c.assume_init_mut() })
+            .map(|c| unsafe { c.first_mut().unwrap_unchecked().assume_init_mut() })
     }
 
     #[cfg(not(feature = "rayon"))]
@@ -161,8 +158,10 @@ where
     fn split_mut(&mut self) -> impl Iterator<Item = (&mut T, &mut [MaybeUninit<T>])> {
         self.node_buf
             .chunks_exact_mut(self.node_buf.len() / self.len)
-            .map(|c| c.split_first_mut().unwrap())
-            .map(|(l, r)| unsafe { (l.assume_init_mut(), r) })
+            .map(|c| unsafe {
+                let (l, r) = c.split_first_mut().unwrap_unchecked();
+                (l.assume_init_mut(), r)
+            })
     }
 
     #[cfg(feature = "rayon")]
@@ -173,37 +172,36 @@ where
     {
         self.node_buf
             .par_chunks_exact_mut(self.node_buf.len() / self.len)
-            .map(|c| c.split_first_mut().unwrap())
-            .map(|(l, r)| unsafe { (l.assume_init_mut(), r) })
+            .map(|c| unsafe {
+                let (l, r) = c.split_first_mut().unwrap_unchecked();
+                (l.assume_init_mut(), r)
+            })
     }
 
     #[cfg(not(feature = "rayon"))]
     pub fn cycle(&mut self) -> Result<(), BeamError> {
-        #[allow(clippy::unnecessary_fold)]
-        if self
+        let cond = self
             .split_mut()
             .map(|(node, buf)| -> Result<(), BeamError> {
                 // expansion
                 let i = node.expand(buf.iter_mut())?;
 
                 // evaluation + selection
-                *node = buf
-                    .iter()
-                    .take(i)
-                    .map(|x| unsafe { x.assume_init_read() }) // dropped
-                    .min_by_key(|k| k.evaluate())
-                    .unwrap();
+                *node = unsafe {
+                    buf.iter()
+                        .take(i)
+                        .map(|x| x.assume_init_read()) // dropped
+                        .min_by_key(|k| k.evaluate())
+                        .unwrap_unchecked()
+                };
 
                 Ok(())
             })
             .fold(true, |acc, c| {
-                acc && matches!(c, Err(BeamError::BranchExhausted))
-            })
-        {
-            Err(BeamError::Exhausted)?;
-        }
+                acc & matches!(c, Err(BeamError::BranchExhausted))
+            });
 
-        Ok(())
+        std::hint::select_unpredictable(cond, Err(BeamError::Exhausted), Ok(()))
     }
 
     #[cfg(feature = "rayon")]
@@ -211,31 +209,29 @@ where
     where
         T: Send,
     {
-        if self
+        let cond = self
             .split_mut()
             .map(|(node, buf)| -> Result<(), BeamError> {
                 // expansion
                 let i = node.expand(buf.par_iter_mut())?;
 
                 // evaluation + selection
-                *node = buf
-                    .par_iter_mut()
-                    .take(i)
-                    .map(|x| unsafe { x.assume_init_read() }) // dropped
-                    .min_by_key(|k| k.evaluate())
-                    .unwrap();
+                *node = unsafe {
+                    buf.par_iter_mut()
+                        .take(i)
+                        .map(|x| x.assume_init_read()) // dropped
+                        .min_by_key(|k| k.evaluate())
+                        .unwrap_unchecked()
+                };
 
                 Ok(())
             })
             .fold_with(true, |acc, c| {
                 acc && matches!(c, Err(BeamError::BranchExhausted))
             })
-            .reduce(|| true, |acc, c| acc && c)
-        {
-            Err(BeamError::Exhausted)?;
-        }
+            .reduce(|| true, |acc, c| acc && c);
 
-        Ok(())
+        std::hint::select_unpredictable(cond, Err(BeamError::Exhausted), Ok(()))
     }
 
     #[cfg(not(feature = "rayon"))]
