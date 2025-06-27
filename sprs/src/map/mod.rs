@@ -153,11 +153,17 @@ where
     }
 
     #[inline]
+    pub(crate) fn delete_one_seq_uncheck(&mut self, k: K) {
+        let i = self.keys.as_index_one_uncheck(k);
+        self.keys.delete_one_seq_uncheck(k);
+        self.vals[i.as_()] = self.vals[self.len().as_()];
+    }
+
+    #[allow(dead_code)]
+    #[inline]
     pub(crate) fn delete_all_seq_uncheck<I: IntoIterator<Item = K>>(&mut self, a: I) {
         for s in a {
-            let i = self.keys.as_index_one_uncheck(s);
-            self.keys.delete_one_seq_uncheck(s);
-            self.vals[i.as_()] = self.vals[self.len().as_()];
+            self.delete_one_seq_uncheck(s);
         }
     }
 
@@ -168,7 +174,7 @@ where
     ) -> impl Iterator<Item = (K, V)> + use<I, K, V> {
         let mut bit = bitvec::BitVec::zeros(Self::MAX_K);
         kv.into_iter().filter(move |&(i, _)| {
-            if branches::likely(!bit.get(i.as_()).unwrap()) {
+            if likely_stable::likely(!bit.get(i.as_()).unwrap()) {
                 bit.set(i.as_(), true);
                 true
             } else {

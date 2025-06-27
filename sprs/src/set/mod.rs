@@ -108,14 +108,15 @@ where
         k.into_par_iter().filter_map(|k| self.as_index_one(k))
     }
 
+    #[inline]
+    pub(crate) fn fittable(&self, k: K) -> bool {
+        k.as_() < self.sparse.len()
+    }
+
     #[cfg_attr(feature = "inline-more", inline)]
     pub fn contains(&self, k: K) -> bool {
-        if branches::likely(k.as_() < self.sparse.len()) {
-            let x = self.sparse[k.as_()];
-            x < self.len && self.dense[x.as_()] == k
-        } else {
-            false
-        }
+        self.fittable(k)
+            && (self.sparse[k.as_()] < self.len) & (self.dense[self.sparse[k.as_()].as_()] == k)
     }
 
     #[inline]
@@ -143,6 +144,7 @@ where
         self.dense[s.as_()] = self.dense[self.len.as_()];
     }
 
+    #[allow(dead_code)]
     #[inline]
     pub(crate) fn delete_all_seq_uncheck<I: IntoIterator<Item = K>>(&mut self, a: I) {
         // < 25%
@@ -159,7 +161,7 @@ where
     ) -> impl Iterator<Item = K> + use<I, K> {
         let mut bit = bitvec::BitVec::zeros(Self::MAX_K);
         k.into_iter().filter(move |&i| {
-            if branches::likely(!bit.get(i.as_()).unwrap()) {
+            if likely_stable::likely(!bit.get(i.as_()).unwrap()) {
                 bit.set(i.as_(), true);
                 true
             } else {

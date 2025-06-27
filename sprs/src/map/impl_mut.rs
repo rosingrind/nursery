@@ -82,37 +82,24 @@ where
 
     #[cfg_attr(feature = "inline-more", inline)]
     fn insert_one(&mut self, k: K, v: V) -> Option<V> {
-        if branches::likely(!self.keys.insert_one(k)) {
-            let k = self.keys.as_index_one(k).unwrap();
+        if self.keys.insert_one(k) {
+            self.vals[self.keys.len().as_() - 1] = v;
+            None
+        } else {
+            let k = self.keys.as_index_one_uncheck(k);
             let old = self.vals[k.as_()];
             self.vals[k.as_()] = v;
             Some(old)
-        } else {
-            self.vals[self.keys.len().as_() - 1] = v;
-            None
         }
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
     fn insert_all<I: IntoIterator<Item = (K, V)>>(&mut self, kv: I) {
-        // prefetch first element
-        let mut iter = kv
-            .into_iter()
-            .inspect(|x| unsafe { branches::prefetch_read_data(std::ptr::from_ref(x).cast(), 1) })
-            .peekable();
-        std::hint::black_box(iter.peek());
-
-        for (k, v) in iter {
-            unsafe {
-                branches::prefetch_write_data(
-                    self.vals.as_mut_ptr().add(self.keys.len().as_()).cast(),
-                    0,
-                )
-            };
-            if branches::likely(self.keys.insert_one(k)) {
+        for (k, v) in kv {
+            if self.keys.insert_one(k) {
                 self.vals[self.keys.len().as_() - 1] = v;
             } else {
-                let k = self.keys.as_index_one(k).unwrap();
+                let k = self.keys.as_index_one_uncheck(k);
                 self.vals[k.as_()] = v;
             }
         }
@@ -132,23 +119,7 @@ where
 
     #[cfg_attr(feature = "inline-more", inline)]
     fn delete_all<I: IntoIterator<Item = K>>(&mut self, k: I) {
-        // prefetch first element
-        let mut iter = k
-            .into_iter()
-            .inspect(|x| unsafe { branches::prefetch_read_data(std::ptr::from_ref(x).cast(), 1) })
-            .peekable();
-        std::hint::black_box(iter.peek());
-
-        for s in iter {
-            unsafe {
-                branches::prefetch_write_data(
-                    self.vals
-                        .as_mut_ptr()
-                        .add(self.keys.len().as_().saturating_sub(1))
-                        .cast(),
-                    0,
-                )
-            };
+        for s in k {
             if let Some(i) = self.keys.as_index_one(s) {
                 self.keys.delete_one_seq_uncheck(s);
                 self.vals[i.as_()] = self.vals[self.len().as_()];

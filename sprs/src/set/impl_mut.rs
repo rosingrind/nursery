@@ -80,14 +80,15 @@ where
     }
 
     fn insert_one(&mut self, k: K) -> bool {
-        assert!(k.as_() <= self.sparse.len());
-
-        if branches::likely(!self.contains(k)) {
-            self.insert_one_seq_uncheck(k);
-            true
-        } else {
-            false
+        if likely_stable::unlikely(!self.fittable(k)) {
+            panic!("k is larger than sparse limit");
         }
+
+        let cond = !self.contains(k);
+        if cond {
+            self.insert_one_seq_uncheck(k);
+        }
+        cond
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
@@ -98,12 +99,11 @@ where
     }
 
     fn delete_one(&mut self, k: K) -> bool {
-        if branches::likely(self.contains(k)) {
+        let cond = self.contains(k);
+        if cond {
             self.delete_one_seq_uncheck(k);
-            true
-        } else {
-            false
         }
+        cond
     }
 
     #[cfg_attr(feature = "inline-more", inline)]

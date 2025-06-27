@@ -41,6 +41,6 @@ where
         K: Sync,
         V: Sync,
     {
-        self.keys.into_par_iter().zip(self.vals.par_iter())
+        self.keys.par_iter().zip(self.vals.par_iter())
     }
 }

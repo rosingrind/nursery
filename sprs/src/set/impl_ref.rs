@@ -190,7 +190,7 @@ where
     where
         K: Sync,
     {
-        self.into_par_iter().all(|x| !other.contains(*x))
+        <Self as SetRef<K>>::par_iter(self).all(|x| !other.contains(*x))
     }
 
     #[cfg(not(feature = "rayon"))]
@@ -209,7 +209,7 @@ where
         K: Sync,
     {
         if self.len() <= other.len() {
-            self.into_par_iter().all(|x| other.contains(*x))
+            <Self as SetRef<K>>::par_iter(self).all(|x| other.contains(*x))
         } else {
             false
         }
