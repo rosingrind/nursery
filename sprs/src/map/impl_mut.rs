@@ -4,7 +4,7 @@ use num_traits::{AsPrimitive, Unsigned};
 
 use recall::*;
 
-use crate::set::SetMut;
+use crate::set::{SetMut, SetRef};
 
 use super::{MapRef, SparMap};
 
@@ -55,13 +55,16 @@ where
     where
         F: Fn(&K, &V) -> bool,
     {
-        let mut vec = Vec::with_capacity(self.len().as_());
-        for (k, v) in self.iter() {
-            if !f(k, v) {
-                vec.push(*k);
+        let mut i = 0usize;
+        while likely_stable::likely(i < self.len().as_()) {
+            let k = &self.keys.as_slice()[i];
+            let v = &self.vals[i];
+            let cond = !f(k, v);
+            i += std::hint::select_unpredictable(cond, 0, 1);
+            if cond {
+                self.delete_one_seq_uncheck(*k);
             }
         }
-        self.delete_all_seq_uncheck(vec);
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
@@ -82,39 +85,39 @@ where
 
     #[cfg_attr(feature = "inline-more", inline)]
     fn insert_one(&mut self, k: K, v: V) -> Option<V> {
-        if self.keys.insert_one(k) {
-            self.vals[self.keys.len().as_() - 1] = v;
-            None
-        } else {
-            let k = self.keys.as_index_one_uncheck(k);
-            let old = self.vals[k.as_()];
-            self.vals[k.as_()] = v;
-            Some(old)
-        }
+        let cond = self.keys.insert_one(k);
+
+        let k = std::hint::select_unpredictable(
+            cond,
+            self.keys.len().as_() - 1,
+            self.keys.as_index_one_uncheck(k).as_(),
+        );
+        let old = std::hint::select_unpredictable(cond, None, self.vals.get(k).copied());
+        self.vals[k] = v;
+        old
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
     fn insert_all<I: IntoIterator<Item = (K, V)>>(&mut self, kv: I) {
         for (k, v) in kv {
-            if self.keys.insert_one(k) {
-                self.vals[self.keys.len().as_() - 1] = v;
-            } else {
-                let k = self.keys.as_index_one_uncheck(k);
-                self.vals[k.as_()] = v;
-            }
+            let cond = self.keys.insert_one(k);
+            let k = std::hint::select_unpredictable(
+                cond,
+                self.keys.len().as_() - 1,
+                self.keys.as_index_one_uncheck(k).as_(),
+            );
+            self.vals[k] = v;
         }
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
     fn delete_one(&mut self, k: K) -> Option<V> {
-        if let Some(i) = self.keys.as_index_one(k) {
+        self.keys.as_index_one(k).map(|i| {
             self.keys.delete_one_seq_uncheck(k);
             let v = self.vals[i.as_()];
             self.vals[i.as_()] = self.vals[self.len().as_()];
-            Some(v)
-        } else {
-            None
-        }
+            v
+        })
     }
 
     #[cfg_attr(feature = "inline-more", inline)]

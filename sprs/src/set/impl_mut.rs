@@ -54,13 +54,15 @@ where
     where
         F: Fn(&K) -> bool,
     {
-        let mut vec = Vec::with_capacity(self.len().as_());
-        for item in self.iter() {
-            if !f(item) {
-                vec.push(*item);
+        let mut i = 0usize;
+        while likely_stable::likely(i < self.len().as_()) {
+            let k = &self.as_slice()[i];
+            let cond = !f(k);
+            i += std::hint::select_unpredictable(cond, 0, 1);
+            if cond {
+                self.delete_one_seq_uncheck(*k);
             }
         }
-        self.delete_all_seq_uncheck(vec);
     }
 
     #[cfg_attr(feature = "inline-more", inline)]

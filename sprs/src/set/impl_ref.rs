@@ -111,11 +111,11 @@ where
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
     fn intersection<'a>(&'a self, other: &'a Self) -> Intersection<'a, K> {
-        let (smaller, larger) = if self.len() <= other.len() {
-            (self, other)
-        } else {
-            (other, self)
-        };
+        let (smaller, larger) = std::hint::select_unpredictable(
+            self.len() <= other.len(),
+            (self, other),
+            (other, self),
+        );
         Intersection {
             iter: smaller.iter(),
             other: larger,
@@ -130,11 +130,11 @@ where
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
     fn union<'a>(&'a self, other: &'a Self) -> Union<'a, K> {
-        let (smaller, larger) = if self.len() <= other.len() {
-            (self, other)
-        } else {
-            (other, self)
-        };
+        let (smaller, larger) = std::hint::select_unpredictable(
+            self.len() <= other.len(),
+            (self, other),
+            (other, self),
+        );
         Union {
             iter: larger.iter().chain(smaller.difference(larger)),
         }
