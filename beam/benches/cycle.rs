@@ -1,37 +1,32 @@
 #[path = "../src/tests/mock.rs"]
 mod mock;
 
-use std::time::Duration;
+use std::hint::black_box;
 
 use beam::{Beam, BeamError, Node};
-use divan::{Bencher, black_box};
+use bencher::Bencher;
 
 const BW: usize = 50;
 const BB: usize = 50;
 const TH: usize = 10_000;
 
-#[divan::bench(max_time = Duration::from_secs(3))]
-fn single_iter(bencher: Bencher) {
-    let node = mock::MockNode::<TH>::default();
+fn fulfillment(b: &mut Bencher) {
+    let node = black_box(mock::MockNode::<TH>::default());
 
-    bencher.bench(|| {
-        let mut beam: Beam<BW, BB, _> = black_box(node.into());
+    b.iter(|| {
+        let mut beam: Beam<BW, BB, _> = node.into();
+        while !black_box(beam.has_fulfilled()) && black_box(beam.cycle()).is_ok() {}
+    });
+}
+
+fn single_iter(b: &mut Bencher) {
+    let node = black_box(mock::MockNode::<TH>::default());
+
+    b.iter(|| {
+        let mut beam: Beam<BW, BB, _> = node.into();
         let _ = black_box(beam.cycle());
     });
 }
 
-#[divan::bench(max_time = Duration::from_secs(3))]
-fn fulfillment(bencher: Bencher) {
-    let node = mock::MockNode::<TH>::default();
-
-    bencher.bench(|| {
-        let mut beam: Beam<BW, BB, _> = black_box(node.into());
-        while black_box(!beam.has_fulfilled()) {
-            let _ = black_box(beam.cycle());
-        }
-    });
-}
-
-fn main() {
-    divan::main();
-}
+bencher::benchmark_group!(benches, fulfillment, single_iter);
+bencher::benchmark_main!(benches);

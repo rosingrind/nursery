@@ -10,7 +10,7 @@ rayon = { workspace = true, optional = true }
 rustc-hash.workspace = true
 
 [dev-dependencies]
-divan.workspace = true
+bencher.workspace = true
 image = "0.25.6"
 rand = "0.9.1"
 

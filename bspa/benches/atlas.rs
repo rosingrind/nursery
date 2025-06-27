@@ -1,16 +1,15 @@
-use std::time::Duration;
+use std::hint::black_box;
 
 use beam::Beam;
+use bencher::Bencher;
 use bspa::{Area, BspaNode, Rect};
-use divan::{Bencher, black_box};
 
 const N: usize = 100_000;
 const F: f32 = 1.0;
 const BW: usize = 1;
 const BB: usize = 1;
 
-#[divan::bench(max_time = Duration::from_secs(3))]
-fn simple_atlas_packing(bencher: Bencher) {
+fn simple_atlas_packing(b: &mut Bencher) {
     const RECT_S: Rect = Rect::new(8, 8);
     const RECT_L: Rect = Rect::new(16, 16);
 
@@ -18,17 +17,13 @@ fn simple_atlas_packing(bencher: Bencher) {
 
     let node = BspaNode::new(ITEMS, 32, N, F);
 
-    bencher.bench(|| {
-        let mut beam: Beam<BW, BB, _> = black_box(node.clone().into());
-        while black_box(!matches!(
-            black_box(beam.cycle()),
-            Err(beam::BeamError::Exhausted)
-        )) {}
+    b.iter(|| {
+        let mut beam: Beam<BW, BB, _> = node.clone().into();
+        while black_box(beam.cycle()) != Err(beam::BeamError::Exhausted) {}
     });
 }
 
-#[divan::bench(max_time = Duration::from_secs(3))]
-fn varied_atlas_packing(bencher: Bencher) {
+fn varied_atlas_packing(b: &mut Bencher) {
     const ITEMS: [Rect; 16] = [
         Rect::new(12, 8),
         Rect::new(8, 4),
@@ -55,19 +50,14 @@ fn varied_atlas_packing(bencher: Bencher) {
         F,
     );
 
-    bencher.bench(|| {
-        let mut beam: Beam<BW, BB, _> = black_box(node.clone().into());
-        while black_box(!matches!(
-            black_box(beam.cycle()),
-            Err(beam::BeamError::Exhausted)
-        )) {}
+    b.iter(|| {
+        let mut beam: Beam<BW, BB, _> = node.clone().into();
+        while black_box(beam.cycle()) != Err(beam::BeamError::Exhausted) {}
+
         beam.extend();
-        while !black_box(beam.has_fulfilled()) {
-            black_box(beam.cycle()).unwrap();
-        }
+        while !black_box(beam.has_fulfilled()) && black_box(beam.cycle()).is_ok() {}
     });
 }
 
-fn main() {
-    divan::main();
-}
+bencher::benchmark_group!(benches, simple_atlas_packing, varied_atlas_packing);
+bencher::benchmark_main!(benches);

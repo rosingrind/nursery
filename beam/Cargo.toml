@@ -7,9 +7,8 @@ edition = "2024"
 rayon = { workspace = true, optional = true }
 
 [dev-dependencies]
+bencher.workspace = true
 itertools = { workspace = true, default-features = false }
-
-divan.workspace = true
 rand.workspace = true
 
 [features]
