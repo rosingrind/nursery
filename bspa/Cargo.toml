@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 beam.workspace = true
 itertools = { workspace = true, default-features = false }
+likely_stable.workspace = true
 rayon = { workspace = true, optional = true }
 rustc-hash.workspace = true
 
