@@ -22,8 +22,6 @@ impl<const B: usize> Node<B> for BspaNode {
         &'a self,
         iter: I,
     ) -> Result<usize, BeamError> {
-        use crate::RectGroup;
-
         let (space, block_pool) = self.prepare::<B>()?;
 
         let fill_op = |(x, block): (&mut MaybeUninit<Self>, RectGroup)| {
@@ -44,10 +42,10 @@ impl<const B: usize> Node<B> for BspaNode {
         let (space, block_pool) = self.prepare::<B>()?;
 
         let fill_op = |(x, block): (&mut MaybeUninit<Self>, RectGroup)| {
-            let x = self.advance(x, space, block);
+            let _x = self.advance(x, space, block);
 
             #[cfg(debug_assertions)]
-            assert::assert_node_expand(x);
+            assert::assert_node_expand(_x);
         };
 
         Ok(iter.zip(block_pool).map(fill_op).count())
@@ -82,30 +80,28 @@ impl<const B: usize> Node<B> for BspaNode {
     }
 
     fn inflate(&mut self) {
-        if self == &Self::default() {
-            return;
-        }
-
         let xmax = self
             .spaces
             .iter()
             .map(|s| s.x + s.w())
             .max()
-            .unwrap_or_else(|| self.w());
+            .unwrap_or(self.w());
         let ymax = self.h();
 
         let mut lhs = &mut self.clone();
 
-        lhs.spaces
-            .iter_mut()
-            .filter(|s| s.y + s.h() >= ymax)
-            .for_each(|s| s.item = Rect::new(s.w(), u32::MAX - s.y));
+        lhs.spaces.iter_mut().for_each(|s| {
+            s.item = std::hint::select_unpredictable(
+                s.y + s.h() >= ymax,
+                Rect::new(s.w(), u32::MAX - s.y),
+                s.item,
+            );
+        });
 
         if !lhs
             .spaces
             .iter()
-            .filter(|s| s.y + s.h() >= ymax)
-            .any(|s| s.w() >= xmax)
+            .any(|s| (s.y + s.h() >= ymax) & (s.w() >= xmax))
         {
             // full width space
             lhs.spaces.reserve_exact(1);
@@ -121,7 +117,7 @@ impl<const B: usize> Node<B> for BspaNode {
             let Ok((space, mut block_pool)) = lhs.prepare::<1>() else {
                 break lhs;
             };
-            let block = block_pool.pop().unwrap();
+            let block = unsafe { block_pool.pop().unwrap_unchecked() };
 
             lhs.advance(
                 unsafe { mem::transmute::<&mut _, &mut MaybeUninit<_>>(&mut *rhs) },
@@ -134,16 +130,18 @@ impl<const B: usize> Node<B> for BspaNode {
         let _ = rhs;
         let _ = top;
 
-        self.spaces
-            .iter_mut()
-            .filter(|s| s.y + s.h() >= ymax)
-            .for_each(|s| s.item = Rect::new(s.w(), ymax + d - s.y));
+        self.spaces.iter_mut().for_each(|s| {
+            s.item = std::hint::select_unpredictable(
+                s.y + s.h() >= ymax,
+                Rect::new(s.w(), ymax + d - s.y),
+                s.item,
+            );
+        });
 
         if !self
             .spaces
             .iter()
-            .filter(|s| s.y + s.h() >= ymax)
-            .any(|s| s.w() >= xmax)
+            .any(|s| (s.y + s.h() >= ymax) & (s.w() >= xmax))
         {
             // full width space
             self.spaces.reserve_exact(1);

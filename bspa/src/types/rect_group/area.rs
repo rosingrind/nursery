@@ -38,8 +38,8 @@ impl Area for &RectGroup {
     #[inline]
     fn w(&self) -> u32 {
         *self.w.get_or_init(|| {
-            let xmin = self.list.iter().map(|p| p.x).min().unwrap();
-            let xmax = self.list.iter().map(|p| p.x + p.w()).max().unwrap();
+            let xmin = self.list.iter().map(|p| p.x).min().unwrap_or(0);
+            let xmax = self.list.iter().map(|p| p.x + p.w()).max().unwrap_or(0);
             xmax - xmin
         })
     }
@@ -47,8 +47,8 @@ impl Area for &RectGroup {
     #[inline]
     fn h(&self) -> u32 {
         *self.h.get_or_init(|| {
-            let ymin = self.list.iter().map(|p| p.y).min().unwrap();
-            let ymax = self.list.iter().map(|p| p.y + p.h()).max().unwrap();
+            let ymin = self.list.iter().map(|p| p.y).min().unwrap_or(0);
+            let ymax = self.list.iter().map(|p| p.y + p.h()).max().unwrap_or(0);
             ymax - ymin
         })
     }

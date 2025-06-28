@@ -87,12 +87,12 @@ impl BspaNode {
                         *acc.entry(c.item).or_default() += 1;
                         acc
                     });
-                    b.w() <= w
-                        && b.h() <= h
-                        && avai_box
+                    (b.w() <= w)
+                        & (b.h() <= h)
+                        & (avai_box
                             .iter()
-                            .all(|(k, v)| v >= boxes.get(k).unwrap_or(&0))
-                        && b.fill_area() as f32 / b.area() as f32 >= f
+                            .all(|(k, v)| v >= boxes.get(k).unwrap_or(&0)))
+                        & (b.fill_area() as f32 / b.area() as f32 >= f)
                 })
             })
             .take(n)
@@ -102,12 +102,12 @@ impl BspaNode {
 
         let space = Rect::new(w, h);
         Self {
-            spaces: Vec::from([Placement {
+            spaces: From::from([Placement {
                 x: 0,
                 y: 0,
                 item: space,
             }]),
-            blocks: Vec::new(),
+            blocks: Default::default(),
             avai_box,
             avai_blk,
         }
@@ -119,7 +119,7 @@ impl BspaNode {
 
     #[inline]
     fn sel_space(&self) -> impl Iterator<Item = Placement<Rect>> + use<'_> {
-        let mut buf = self.spaces.iter().collect::<Vec<_>>();
+        let mut buf = self.spaces.iter().collect::<Box<_>>();
         buf.sort();
         buf.into_iter().copied()
     }
@@ -146,8 +146,8 @@ impl BspaNode {
         let mut vec = self
             .avai_blk
             .iter()
-            .filter(|b| space.item.w() >= b.w() && space.item.h() >= b.h())
-            .collect::<Vec<_>>();
+            .filter(|b| (space.item.w() >= b.w()) & (space.item.h() >= b.h()))
+            .collect::<Box<_>>();
         #[cfg(not(feature = "rayon"))]
         vec.sort_unstable_by_key(|b| b.score(space, avg_high(&self.avai_box, b)));
         #[cfg(feature = "rayon")]

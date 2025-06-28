@@ -21,49 +21,65 @@ impl<T: Area> Placement<T> {
         let r_x = rhs.x + rhs.item.w();
         let r_y = rhs.y + rhs.item.h();
 
-        (rhs.x < l_x && r_x > self.x) && (rhs.y < l_y && r_y > self.y)
+        ((rhs.x < l_x) & (r_x > self.x)) & ((rhs.y < l_y) & (r_y > self.y))
     }
 
     /// Split in `y` positive direction
     pub fn split_n<U: Area>(&self, rhs: &Placement<U>) -> Option<Placement<Rect>> {
-        (rhs.y > self.y).then(|| Placement {
-            x: self.x,
-            y: self.y,
-            item: Rect::new(self.item.w(), rhs.y - self.y),
-        })
+        std::hint::select_unpredictable(
+            rhs.y > self.y,
+            Some(Placement {
+                x: self.x,
+                y: self.y,
+                item: Rect::new(self.item.w(), rhs.y.saturating_sub(self.y)),
+            }),
+            None,
+        )
     }
 
     /// Split in `y` negative direction
     pub fn split_s<U: Area>(&self, rhs: &Placement<U>) -> Option<Placement<Rect>> {
-        (rhs.y + rhs.item.h() < self.y + self.item.h()).then(|| Placement {
-            x: self.x,
-            y: rhs.y + rhs.item.h(),
-            item: Rect::new(
-                self.item.w(),
-                self.y + self.item.h() - (rhs.y + rhs.item.h()),
-            ),
-        })
+        std::hint::select_unpredictable(
+            rhs.y + rhs.item.h() < self.y + self.item.h(),
+            Some(Placement {
+                x: self.x,
+                y: rhs.y + rhs.item.h(),
+                item: Rect::new(
+                    self.item.w(),
+                    (self.y + self.item.h()).saturating_sub(rhs.y + rhs.item.h()),
+                ),
+            }),
+            None,
+        )
     }
 
     /// Split in `x` positive direction
     pub fn split_e<U: Area>(&self, rhs: &Placement<U>) -> Option<Placement<Rect>> {
-        (rhs.x > self.x).then(|| Placement {
-            x: self.x,
-            y: self.y,
-            item: Rect::new(rhs.x - self.x, self.item.h()),
-        })
+        std::hint::select_unpredictable(
+            rhs.x > self.x,
+            Some(Placement {
+                x: self.x,
+                y: self.y,
+                item: Rect::new(rhs.x.saturating_sub(self.x), self.item.h()),
+            }),
+            None,
+        )
     }
 
     /// Split in `x` negative direction
     pub fn split_w<U: Area>(&self, rhs: &Placement<U>) -> Option<Placement<Rect>> {
-        (rhs.x + rhs.item.w() < self.x + self.item.w()).then(|| Placement {
-            x: rhs.x + rhs.item.w(),
-            y: self.y,
-            item: Rect::new(
-                self.x + self.item.w() - (rhs.x + rhs.item.w()),
-                self.item.h(),
-            ),
-        })
+        std::hint::select_unpredictable(
+            rhs.x + rhs.item.w() < self.x + self.item.w(),
+            Some(Placement {
+                x: rhs.x + rhs.item.w(),
+                y: self.y,
+                item: Rect::new(
+                    (self.x + self.item.w()).saturating_sub(rhs.x + rhs.item.w()),
+                    self.item.h(),
+                ),
+            }),
+            None,
+        )
     }
 
     #[allow(dead_code)]
@@ -71,15 +87,14 @@ impl<T: Area> Placement<T> {
     where
         T: Copy,
     {
-        let n = std::iter::once_with(move || self.split_n(rhs));
-        let s = std::iter::once_with(move || self.split_s(rhs));
-        let e = std::iter::once_with(move || self.split_e(rhs));
-        let w = std::iter::once_with(move || self.split_w(rhs));
-
-        n.chain(s)
-            .chain(e)
-            .chain(w)
-            .filter_map(|x| x.filter(|c| c.item.area() > 0))
+        [
+            self.split_n(rhs),
+            self.split_s(rhs),
+            self.split_e(rhs),
+            self.split_w(rhs),
+        ]
+        .into_iter()
+        .filter_map(|x| x.filter(|c| c.item.area() > 0))
     }
 
     #[cfg(feature = "rayon")]
@@ -90,19 +105,14 @@ impl<T: Area> Placement<T> {
     where
         T: Sync,
     {
-        let (n, s) = rayon::join(
-            || rayon::iter::once(self.split_n(rhs)),
-            || rayon::iter::once(self.split_s(rhs)),
-        );
-        let (e, w) = rayon::join(
-            || rayon::iter::once(self.split_e(rhs)),
-            || rayon::iter::once(self.split_w(rhs)),
-        );
-
-        n.chain(s)
-            .chain(e)
-            .chain(w)
-            .filter_map(|x| x.filter(|c| c.item.area() > 0))
+        [
+            self.split_n(rhs),
+            self.split_s(rhs),
+            self.split_e(rhs),
+            self.split_w(rhs),
+        ]
+        .into_par_iter()
+        .filter_map(|x| x.filter(|c| c.item.area() > 0))
     }
 }
 
