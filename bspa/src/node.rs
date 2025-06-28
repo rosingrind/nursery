@@ -27,10 +27,10 @@ impl<const B: usize> Node<B> for BspaNode {
         let (space, block_pool) = self.prepare::<B>()?;
 
         let fill_op = |(x, block): (&mut MaybeUninit<Self>, RectGroup)| {
-            let x = self.advance(x, space, block);
+            let _x = self.advance(x, space, block);
 
             #[cfg(debug_assertions)]
-            assert::assert_node_expand(x);
+            assert::assert_node_expand(_x);
         };
 
         Ok(iter.zip(block_pool).map(fill_op).count())

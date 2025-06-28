@@ -49,7 +49,6 @@ mod tests {
     use super::*;
 
     const RECT_S: Rect = Rect::new(8, 8);
-    const RECT_L: Rect = Rect::new(16, 16);
 
     #[test]
     fn area() {
