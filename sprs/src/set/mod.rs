@@ -146,9 +146,9 @@ where
         &self,
         k: I,
     ) -> impl Iterator<Item = K> + use<I, K> {
-        let mut bit = bitvec::bitbox![0; Self::MAX_K];
+        let mut bit = bitvec::BitVec::zeros(Self::MAX_K);
         k.into_iter().filter(move |&i| {
-            if branches::likely(!bit[i.as_()]) {
+            if branches::likely(!bit.get(i.as_()).unwrap()) {
                 bit.set(i.as_(), true);
                 true
             } else {
