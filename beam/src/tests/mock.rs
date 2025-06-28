@@ -45,8 +45,7 @@ impl<const THRESHOLD: usize, const B: usize> Node<B> for MockNode<THRESHOLD> {
     }
 
     fn evaluate(&self) -> u64 {
-        const ACCURACY: f64 = 10_000.0;
-        (ACCURACY / self.count as f64).round() as u64
+        !(self.count as u64)
     }
 
     fn has_fulfilled(&self) -> bool {
