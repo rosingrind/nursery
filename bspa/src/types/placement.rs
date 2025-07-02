@@ -2,6 +2,8 @@ mod area;
 #[cfg(test)]
 mod tests;
 
+use std::hash::Hash;
+
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;
 
@@ -137,5 +139,12 @@ impl<T: Area + Eq> Ord for Placement<T> {
         // min `y` then min `x` order
         ((self.x as u64) | ((self.y as u64) << 8))
             .cmp(&((other.x as u64) | ((other.y as u64) << 8)))
+    }
+}
+
+impl<T: Area + Hash> Hash for Placement<T> {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.item.hash(state);
+        state.write_u64((self.x as u64) | ((self.y as u64) << 8));
     }
 }
