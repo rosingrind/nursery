@@ -130,6 +130,7 @@ fn test_insert() {
     assert_eq!(*m.query_one(2).unwrap(), 4);
 }
 
+#[cfg(not(feature = "memmap2"))]
 #[test]
 fn test_clone() {
     let mut m = MockMap::new(KEY_MAX);
@@ -145,6 +146,7 @@ fn test_clone() {
     assert_eq!(m2.len(), 2);
 }
 
+#[cfg(not(feature = "memmap2"))]
 #[test]
 fn test_clone_from() {
     let mut m = MockMap::new(KEY_MAX);

@@ -46,7 +46,7 @@ where
 {
     #[cfg_attr(feature = "inline-more", inline)]
     fn clear(&mut self) {
-        self.len = K::zero();
+        self.len.set_zero();
     }
 
     #[cfg_attr(feature = "inline-more", inline)]

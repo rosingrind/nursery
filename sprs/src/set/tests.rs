@@ -8,33 +8,33 @@ type MockSet = SparSet<Key>;
 fn regular_ops() {
     let mut set = MockSet::new(KEY_MAX);
 
-    assert_eq!(set.dense[..set.len as usize], []);
+    assert_eq!(set.dense[..*set.len as usize], []);
     assert_eq!(set.as_slice(), &[]);
     assert_eq!(set.as_index_all([]).count(), 0);
     assert_eq!(set.as_index_all([1, 2, 3]).count(), 0);
-    assert_eq!(set.len, 0);
+    assert_eq!(*set.len, 0);
     assert_eq!(set.len(), 0);
 
     assert!(set.insert_one(5));
     assert!(!set.insert_one(5));
     assert!(set.contains(5));
-    assert_eq!(set.dense[..set.len as usize], [5]);
+    assert_eq!(set.dense[..*set.len as usize], [5]);
     assert_eq!(set.sparse[5], 0);
     assert_eq!(set.as_slice(), &[5]);
     assert_eq!(set.as_index_one(5), Some(0));
     assert_eq!(set.as_index_all([5]).collect::<Vec<_>>(), [0]);
-    assert_eq!(set.len, 1);
-    assert_eq!(set.len(), set.len);
+    assert_eq!(*set.len, 1);
+    assert_eq!(set.len(), *set.len);
 
     assert!(set.delete_one(5));
     assert!(!set.delete_one(5));
     assert!(!set.contains(5));
-    assert_eq!(set.dense[..set.len as usize], []);
+    assert_eq!(set.dense[..*set.len as usize], []);
     assert_eq!(set.as_slice(), &[]);
     assert_eq!(set.as_index_one(5), None);
     assert_eq!(set.as_index_all([5]).count(), 0);
-    assert_eq!(set.len, 0);
-    assert_eq!(set.len(), set.len);
+    assert_eq!(*set.len, 0);
+    assert_eq!(set.len(), *set.len);
 
     for (i, k) in (4..8).enumerate() {
         assert!(set.insert_one(k));
@@ -43,8 +43,8 @@ fn regular_ops() {
         assert_eq!(set.as_slice()[i], k);
         assert_eq!(set.as_index_one(k), Some(i as Key));
         assert_eq!(set.as_index_all([k]).collect::<Vec<_>>(), [i as Key]);
-        assert_eq!(set.len, i as Key + 1);
-        assert_eq!(set.len(), set.len);
+        assert_eq!(*set.len, i as Key + 1);
+        assert_eq!(set.len(), *set.len);
     }
     assert!(set.as_index_one(3).is_none());
     assert!(set.as_index_one(8).is_none());
@@ -56,8 +56,8 @@ fn regular_ops() {
     assert_eq!(set.as_slice(), &[7]);
     assert!(set.delete_one(7));
     assert_eq!(set.as_slice(), &[]);
-    assert_eq!(set.len, 0);
-    assert_eq!(set.len(), set.len);
+    assert_eq!(*set.len, 0);
+    assert_eq!(set.len(), *set.len);
 }
 
 #[test]
@@ -136,8 +136,8 @@ fn batched_ops() {
         set.as_index_all([5, 4, 7, 6]).collect::<Vec<_>>(),
         [1, 0, 3, 2]
     );
-    assert_eq!(set.len, 4);
-    assert_eq!(set.len(), set.len);
+    assert_eq!(*set.len, 4);
+    assert_eq!(set.len(), *set.len);
 
     set.delete_all([5, 5, 5, 4, 4, 4, 7, 2, 2, 2, 5, 5, 5]);
     assert_eq!(set.as_slice(), [6]);
@@ -149,8 +149,8 @@ fn batched_ops() {
             .collect::<Vec<_>>(),
         [0]
     );
-    assert_eq!(set.len, 1);
-    assert_eq!(set.len(), set.len);
+    assert_eq!(*set.len, 1);
+    assert_eq!(set.len(), *set.len);
 }
 
 #[test]

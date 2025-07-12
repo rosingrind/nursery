@@ -11,7 +11,23 @@ use rayon::prelude::*;
 fn insert_all() {
     const VEC: std::ops::Range<Key> = 0..Key::MAX;
 
+    #[cfg(not(feature = "memmap2"))]
     let mut set = SparSet::<Key>::new(KEY_MAX);
+
+    #[cfg(feature = "memmap2")]
+    let mut set = {
+        const PATH: &str = "set_uge.insert_all.bin";
+
+        let file = std::fs::File::create_new(PATH)
+            .and_then(|f| {
+                f.set_len((size_of::<Key>() + size_of::<Key>() * (KEY_MAX + 1) * 2) as u64)?;
+                Ok(f)
+            })
+            .or(std::fs::File::options().read(true).write(true).open(PATH))
+            .unwrap();
+        SparSet::<Key>::new_mmap(KEY_MAX, file)
+    };
+
     let vec = VEC.collect_array::<KEY_MAX>().unwrap();
 
     set.insert_all(VEC);
@@ -28,7 +44,22 @@ fn delete_all() {
     const VEC_A: std::ops::Range<Key> = 0..Key::MAX;
     const VEC_B: std::ops::Range<Key> = 0..Key::MAX - 1;
 
+    #[cfg(not(feature = "memmap2"))]
     let mut set = SparSet::<Key>::new(KEY_MAX);
+
+    #[cfg(feature = "memmap2")]
+    let mut set = {
+        const PATH: &str = "set_uge.delete_all.bin";
+
+        let file = std::fs::File::create_new(PATH)
+            .and_then(|f| {
+                f.set_len((size_of::<Key>() + size_of::<Key>() * (KEY_MAX + 1) * 2) as u64)?;
+                Ok(f)
+            })
+            .or(std::fs::File::options().read(true).write(true).open(PATH))
+            .unwrap();
+        SparSet::<Key>::new_mmap(KEY_MAX, file)
+    };
 
     set.insert_all(VEC_A);
     set.delete_all(VEC_B);
