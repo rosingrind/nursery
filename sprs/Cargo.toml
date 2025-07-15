@@ -8,7 +8,7 @@ bitcode = { version = "0.6", optional = true }
 bitvec = { package = "bitvec_simd", version = "0.20.5" }
 itertools.workspace = true
 likely_stable.workspace = true
-memmap2 = { version = "0.9.5", optional = true }
+memmap2 = { version = "0.9.7", optional = true }
 num-traits = "0.2.19"
 rayon = { workspace = true, optional = true }
 tempfile = { version = "3.20.0", optional = true }
@@ -21,12 +21,13 @@ rand.workspace = true
 sparsey = "0.13.3"
 
 [features]
-default = []
+default = ["volatile"]
 bitcode = ["dep:bitcode"]
 inline-more = []
 memmap2 = ["dep:memmap2", "dep:tempfile"]
 nightly = []
 rayon = ["dep:rayon", "sparsey/parallel"]
+volatile = []
 
 [[bench]]
 name = "ext_mut"

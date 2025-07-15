@@ -7,7 +7,7 @@ use std::ops::{BitAndAssign, BitOrAssign, BitXorAssign, SubAssign};
 
 use num_traits::{AsPrimitive, Unsigned};
 
-use crate::set::{SetMut, SetRef, SparSet};
+use crate::set::{SetMut, SetRef, model::*};
 
 impl<'a, K> BitOrAssign<&'a SparSet<K>> for SparSet<K>
 where
@@ -45,7 +45,7 @@ where
     /// b |= &a;
     /// ```
     fn bitor_assign(&mut self, rhs: &'a SparSet<K>) {
-        assert!(self.sparse.len() >= rhs.sparse.len());
+        assert!(self.s().len() >= rhs.s().len());
         for item in rhs.iter().copied() {
             if !self.contains(item) {
                 self.insert_one(item);
@@ -119,7 +119,7 @@ where
     /// b ^= &a;
     /// ```
     fn bitxor_assign(&mut self, rhs: &'a SparSet<K>) {
-        assert!(self.sparse.len() >= rhs.sparse.len());
+        assert!(self.s().len() >= rhs.s().len());
         for item in rhs.iter().copied() {
             if !self.contains(item) {
                 self.insert_one(item);

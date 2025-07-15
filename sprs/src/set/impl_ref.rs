@@ -12,7 +12,7 @@ pub(super) use intersection::*;
 pub(super) use symmetric_difference::*;
 pub(super) use union::*;
 
-use super::SparSet;
+use super::{SparSet, model::*};
 
 pub type SetIter<'a, K> = std::slice::Iter<'a, K>;
 #[cfg(feature = "rayon")]
@@ -91,12 +91,12 @@ where
 {
     #[cfg_attr(feature = "inline-more", inline)]
     fn as_slice(&self) -> &[K] {
-        &self.dense[..self.len.as_()]
+        &self.d()[..self.l().as_()]
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
     fn iter(&self) -> SetIter<K> {
-        self.dense[..self.len.as_()].iter()
+        self.d()[..self.l().as_()].iter()
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
@@ -105,17 +105,14 @@ where
     where
         K: Sync,
     {
-        self.dense[..self.len.as_()].par_iter()
+        self.dense()[..self.len().as_()].par_iter()
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
     fn intersection<'a>(&'a self, other: &'a Self) -> Intersection<'a, K> {
-        let (smaller, larger) = std::hint::select_unpredictable(
-            self.len() <= other.len(),
-            (self, other),
-            (other, self),
-        );
+        let (smaller, larger) =
+            std::hint::select_unpredictable(self.l() <= other.l(), (self, other), (other, self));
         Intersection {
             iter: smaller.iter(),
             other: larger,
@@ -130,11 +127,8 @@ where
     #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
     fn union<'a>(&'a self, other: &'a Self) -> Union<'a, K> {
-        let (smaller, larger) = std::hint::select_unpredictable(
-            self.len() <= other.len(),
-            (self, other),
-            (other, self),
-        );
+        let (smaller, larger) =
+            std::hint::select_unpredictable(self.l() <= other.l(), (self, other), (other, self));
         Union {
             iter: larger.iter().chain(smaller.difference(larger)),
         }
@@ -195,7 +189,7 @@ where
 
     #[cfg(not(feature = "rayon"))]
     fn is_subset(&self, other: &Self) -> bool {
-        self.len() <= other.len() && self.iter().all(|&v| other.contains(v))
+        self.l() <= other.l() && self.iter().all(|&v| other.contains(v))
         // if self.len() <= other.len() {
         //     self.iter().all(|v| other.contains(*v))
         // } else {

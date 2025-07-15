@@ -4,7 +4,7 @@ use num_traits::{AsPrimitive, Unsigned};
 
 use recall::*;
 
-use super::{SetRef, SparSet};
+use super::{SetRef, model::*};
 
 pub trait SetMut<K>
 where
@@ -46,7 +46,7 @@ where
 {
     #[cfg_attr(feature = "inline-more", inline)]
     fn clear(&mut self) {
-        self.len.set_zero();
+        self.l().set_zero();
     }
 
     #[cfg_attr(feature = "inline-more", inline)]
@@ -55,7 +55,7 @@ where
         F: Fn(&K) -> bool,
     {
         let mut i = 0usize;
-        while likely_stable::likely(i < self.len().as_()) {
+        while likely_stable::likely(i < self.l().as_()) {
             let k = &self.as_slice()[i];
             let cond = !f(k);
             i += std::hint::select_unpredictable(cond, 0, 1);

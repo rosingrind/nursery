@@ -25,7 +25,7 @@ fn insert_all() {
             })
             .or(std::fs::File::options().read(true).write(true).open(PATH))
             .unwrap();
-        SparSet::<Key>::new_mmap(KEY_MAX, file)
+        SparSet::<Key>::from_buf(KEY_MAX, file)
     };
 
     let vec = VEC.collect_array::<KEY_MAX>().unwrap();
@@ -58,7 +58,7 @@ fn delete_all() {
             })
             .or(std::fs::File::options().read(true).write(true).open(PATH))
             .unwrap();
-        SparSet::<Key>::new_mmap(KEY_MAX, file)
+        SparSet::<Key>::from_buf(KEY_MAX, file)
     };
 
     set.insert_all(VEC_A);

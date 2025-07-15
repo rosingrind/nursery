@@ -1,16 +1,10 @@
 mod impl_mut;
 mod impl_ops;
 mod impl_ref;
-#[cfg(feature = "memmap2")]
-mod mmap;
+mod model;
 #[cfg(test)]
 mod tests;
 
-#[cfg(feature = "memmap2")]
-use std::fs::File;
-
-#[cfg(feature = "bitcode")]
-use bitcode::{Decode, Encode};
 use num_traits::{AsPrimitive, Unsigned};
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;
@@ -18,36 +12,16 @@ use rayon::prelude::*;
 pub use impl_mut::SetMut;
 pub use impl_ref::SetRef;
 
-#[cfg_attr(feature = "bitcode", derive(Decode, Encode))]
-#[cfg_attr(not(feature = "memmap2"), derive(Clone))]
-pub struct SparSet<K: Unsigned> {
-    #[cfg(not(feature = "memmap2"))]
-    sparse: Box<[K]>,
-    #[cfg(feature = "memmap2")]
-    sparse: mmap::MmapMutBuf<K>,
-    #[cfg(not(feature = "memmap2"))]
-    dense: Box<[K]>,
-    #[cfg(feature = "memmap2")]
-    dense: mmap::MmapMutBuf<K>,
-    #[cfg(not(feature = "memmap2"))]
-    len: std::mem::ManuallyDrop<K>, // ManuallyDrop is used to unify `*len = ...` syntax
-    #[cfg(feature = "memmap2")]
-    len: mmap::MmapMutVal<K>,
-}
+pub use model::*;
 
-impl<K> Default for SparSet<K>
-where
-    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
-{
+impl<K: Unsigned> Default for SparSet<K> {
     fn default() -> Self {
         Self::new(SparSet::<K>::MAX_K)
     }
 }
 
-impl<K> SparSet<K>
-where
-    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
-{
+/// Unified models' creation facade
+impl<K: Unsigned> SparSet<K> {
     pub const MAX_K: usize = 2usize.pow(size_of::<K>() as u32 * 8) - 1;
 
     #[cfg(not(feature = "memmap2"))]
@@ -55,64 +29,40 @@ where
     pub fn new(N: usize) -> Self {
         assert!(N <= Self::MAX_K);
 
-        Self {
-            sparse: unsafe { Box::new_uninit_slice(N + 1).assume_init() },
-            len: std::mem::ManuallyDrop::new(K::zero()),
-            dense: unsafe { Box::new_uninit_slice(N + 1).assume_init() },
-        }
+        Self::from_raw(
+            K::zero(),
+            unsafe { Box::new_uninit_slice(N + 1).assume_init() },
+            unsafe { Box::new_uninit_slice(N + 1).assume_init() },
+        )
     }
 
     #[cfg(feature = "memmap2")]
     #[allow(non_snake_case)]
     pub fn new(N: usize) -> Self {
-        assert!(N <= Self::MAX_K);
-
         let len = size_of::<K>() + size_of::<K>() * 2 * (N + 1);
         let file = tempfile::tempfile().unwrap();
         file.set_len(len as u64).unwrap();
 
-        Self::new_mmap(N, file)
+        Self::from_buf(N, file)
     }
+}
 
-    #[cfg(feature = "memmap2")]
-    #[allow(non_snake_case)]
-    pub fn new_mmap(N: usize, file: File) -> Self {
-        assert!(N <= Self::MAX_K);
-
-        let l_mmap = mmap::MmapMutVal::<K>::new(&file, size_of::<K>(), 0).unwrap();
-        l_mmap.0.advise(memmap2::Advice::WillNeed).unwrap();
-
-        let len = size_of::<K>() * (N + 1);
-
-        let s_mmap = mmap::MmapMutBuf::<K>::new(&file, len, size_of::<K>() as u64).unwrap();
-        s_mmap.0.advise(memmap2::Advice::Sequential).unwrap();
-        debug_assert_eq!(s_mmap.len(), N + 1);
-
-        let d_mmap = mmap::MmapMutBuf::<K>::new(&file, len, (size_of::<K>() + len) as u64).unwrap();
-        d_mmap.0.advise(memmap2::Advice::Sequential).unwrap();
-        debug_assert_eq!(d_mmap.len(), N + 1);
-
-        assert_eq!(s_mmap.len(), d_mmap.len());
-
-        Self {
-            sparse: s_mmap,
-            len: l_mmap,
-            dense: d_mmap,
-        }
-    }
-
+impl<K> SparSet<K>
+where
+    K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
+{
     pub fn len(&self) -> K {
-        *self.len
+        *self.l()
     }
 
     pub fn is_empty(&self) -> bool {
-        *self.len == K::zero()
+        *self.l() == K::zero()
     }
 
     /// Returns dense index of key if exists
     pub fn as_index_one(&self, k: K) -> Option<K> {
         if self.contains(k) {
-            Some(self.sparse[k.as_()])
+            Some(self.s()[k.as_()])
         } else {
             None
         }
@@ -120,7 +70,7 @@ where
 
     /// Returns dense index of key if exists
     pub(crate) fn as_index_one_uncheck(&self, k: K) -> K {
-        self.sparse[k.as_()]
+        self.s()[k.as_()]
     }
 
     #[cfg(not(feature = "rayon"))]
@@ -144,19 +94,20 @@ where
 
     #[inline]
     pub(crate) fn fittable(&self, k: K) -> bool {
-        k.as_() < self.sparse.len()
+        k.as_() < self.s().len()
     }
 
     pub fn contains(&self, k: K) -> bool {
         self.fittable(k)
-            && (self.sparse[k.as_()] < *self.len) & (self.dense[self.sparse[k.as_()].as_()] == k)
+            && (self.s()[k.as_()] < *self.l()) & (self.d()[self.s()[k.as_()].as_()] == k)
     }
 
     #[inline]
     pub(crate) fn insert_one_seq_uncheck(&mut self, k: K) {
-        self.sparse[k.as_()] = *self.len;
-        self.dense[self.len.as_()] = k;
-        *self.len = self.len.add(K::one());
+        self.s()[k.as_()] = *self.l();
+        let l = self.l().as_(); // TODO: get rid of temporary variable
+        self.d()[l] = k;
+        *self.l() = self.l().add(K::one());
     }
 
     #[allow(dead_code)]
@@ -169,10 +120,12 @@ where
 
     #[inline]
     pub(crate) fn delete_one_seq_uncheck(&mut self, k: K) {
-        let s = self.sparse[k.as_()];
-        *self.len = self.len.sub(K::one());
-        self.sparse[self.dense[self.len.as_()].as_()] = self.sparse[k.as_()];
-        self.dense[s.as_()] = self.dense[self.len.as_()];
+        let s = self.s()[k.as_()];
+        *self.l() = self.l().sub(K::one());
+        let l = self.l().as_(); // TODO: get rid of temporary variable
+        let d = self.d()[l].as_(); // TODO: get rid of temporary variable
+        self.s()[d] = self.s()[k.as_()];
+        self.d()[s.as_()] = self.d()[l];
     }
 
     #[allow(dead_code)]
