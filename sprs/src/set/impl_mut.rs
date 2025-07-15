@@ -44,12 +44,10 @@ impl<K> SetMut<K> for SparSet<K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
-    #[cfg_attr(feature = "inline-more", inline)]
     fn clear(&mut self) {
         self.l().set_zero();
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     fn retain<F>(&mut self, f: F)
     where
         F: Fn(&K) -> bool,
@@ -65,7 +63,6 @@ where
         }
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     fn recall<F>(&mut self, f: F) -> Recall<'_, K, F>
     where
         F: Fn(&K) -> bool,
@@ -93,7 +90,6 @@ where
         cond
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     fn insert_all<I: IntoIterator<Item = K>>(&mut self, k: I) {
         for s in k {
             let _ = self.insert_one(s);
@@ -108,7 +104,6 @@ where
         cond
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     fn delete_all<I: IntoIterator<Item = K>>(&mut self, k: I) {
         for s in k {
             let _ = self.delete_one(s);

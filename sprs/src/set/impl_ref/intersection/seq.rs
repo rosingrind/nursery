@@ -16,7 +16,6 @@ impl<K> Clone for Intersection<'_, K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
-    #[cfg_attr(feature = "inline-more", inline)]
     fn clone(&self) -> Self {
         Intersection {
             iter: self.iter.clone(),
@@ -31,7 +30,6 @@ where
 {
     type Item = &'a K;
 
-    #[cfg_attr(feature = "inline-more", inline)]
     fn next(&mut self) -> Option<&'a K> {
         loop {
             let elt = self.iter.next()?;
@@ -41,13 +39,11 @@ where
         }
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     fn size_hint(&self) -> (usize, Option<usize>) {
         let (_, upper) = self.iter.size_hint();
         (0, upper)
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     fn fold<B, F>(self, init: B, mut f: F) -> B
     where
         Self: Sized,

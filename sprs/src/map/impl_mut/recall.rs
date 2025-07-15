@@ -16,7 +16,6 @@ where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     V: Copy,
 {
-    #[cfg_attr(feature = "inline-more", inline)]
     pub(crate) fn next<F>(&mut self, f: F) -> Option<V>
     where
         F: Fn(&K, &V) -> bool,
@@ -47,7 +46,6 @@ where
 {
     type Item = V;
 
-    #[cfg_attr(feature = "inline-more", inline)]
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next(|k, v| (self.f)(k, v))
     }

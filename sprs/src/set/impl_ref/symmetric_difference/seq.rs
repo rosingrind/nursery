@@ -15,7 +15,6 @@ impl<K> Clone for SymmetricDifference<'_, K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
-    #[cfg_attr(feature = "inline-more", inline)]
     fn clone(&self) -> Self {
         SymmetricDifference {
             iter: self.iter.clone(),
@@ -29,17 +28,14 @@ where
 {
     type Item = &'a K;
 
-    #[cfg_attr(feature = "inline-more", inline)]
     fn next(&mut self) -> Option<&'a K> {
         self.iter.next()
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.iter.size_hint()
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     fn fold<B, F>(self, init: B, f: F) -> B
     where
         Self: Sized,

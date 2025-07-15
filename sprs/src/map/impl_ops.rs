@@ -47,7 +47,6 @@ where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd + Ord,
     V: Copy,
 {
-    #[cfg_attr(feature = "inline-more", inline)]
     fn from_iter<I: IntoIterator<Item = (K, V)>>(iter: I) -> Self {
         let arr: Box<[(K, V)]> = iter.into_iter().collect();
         let mut map = Self::new(arr.iter().max_by_key(|(k, _)| k).unwrap().0.as_());
@@ -62,12 +61,10 @@ where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     V: Copy,
 {
-    #[cfg_attr(feature = "inline-more", inline)]
     fn extend<I: IntoIterator<Item = (K, V)>>(&mut self, iter: I) {
         self.insert_all(iter);
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(feature = "nightly")]
     fn extend_one(&mut self, (k, v): (K, V)) {
         self.insert_one(k, v);
@@ -79,12 +76,10 @@ where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     V: Copy,
 {
-    #[cfg_attr(feature = "inline-more", inline)]
     fn extend<I: IntoIterator<Item = (&'a K, &'a V)>>(&mut self, iter: I) {
         self.extend(iter.into_iter().map(|(&key, &value)| (key, value)));
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(feature = "nightly")]
     fn extend_one(&mut self, (k, v): (&'a K, &'a V)) {
         self.insert_one(*k, *v);
@@ -96,12 +91,10 @@ where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     V: Copy,
 {
-    #[cfg_attr(feature = "inline-more", inline)]
     fn extend<I: IntoIterator<Item = &'a (K, V)>>(&mut self, iter: I) {
         self.extend(iter.into_iter().map(|&(key, value)| (key, value)));
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(feature = "nightly")]
     fn extend_one(&mut self, &(k, v): &'a (K, V)) {
         self.insert_one(k, v);
@@ -115,7 +108,6 @@ where
 {
     type Output = V;
 
-    #[cfg_attr(feature = "inline-more", inline)]
     fn index(&self, key: K) -> &V {
         self.query_one(key).expect("no entry found for key")
     }

@@ -15,7 +15,6 @@ impl<K> RawRecall<'_, K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
-    #[cfg_attr(feature = "inline-more", inline)]
     fn next<F>(&mut self, f: F) -> Option<K>
     where
         F: Fn(&K) -> bool,
@@ -47,7 +46,6 @@ where
 {
     type Item = K;
 
-    #[cfg_attr(feature = "inline-more", inline)]
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next(|k| (self.f)(k))
     }

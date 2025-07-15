@@ -27,14 +27,12 @@ impl<K, V> MapRef<K, V> for SparMap<K, V>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
-    #[cfg_attr(feature = "inline-more", inline)]
     fn iter(&self) -> MapIter<K, V> {
         use crate::set::SetRef;
 
         self.keys.iter().zip(self.vals.iter())
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(feature = "rayon")]
     fn par_iter(&self) -> MapParIter<K, V>
     where

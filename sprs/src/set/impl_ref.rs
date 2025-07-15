@@ -89,17 +89,14 @@ impl<K> SetRef<K> for SparSet<K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
-    #[cfg_attr(feature = "inline-more", inline)]
     fn as_slice(&self) -> &[K] {
         &self.d()[..self.l().as_()]
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     fn iter(&self) -> SetIter<K> {
         self.d()[..self.l().as_()].iter()
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(feature = "rayon")]
     fn par_iter(&self) -> SetParIter<K>
     where
@@ -108,7 +105,6 @@ where
         self.dense()[..self.len().as_()].par_iter()
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
     fn intersection<'a>(&'a self, other: &'a Self) -> Intersection<'a, K> {
         let (smaller, larger) =
@@ -124,7 +120,6 @@ where
         Intersection { a: self, b: other }
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
     fn union<'a>(&'a self, other: &'a Self) -> Union<'a, K> {
         let (smaller, larger) =
@@ -134,13 +129,11 @@ where
         }
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(feature = "rayon")]
     fn union<'a>(&'a self, other: &'a Self) -> Union<'a, K> {
         Union { a: self, b: other }
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
     fn difference<'a>(&'a self, other: &'a Self) -> Difference<'a, K> {
         Difference {
@@ -149,13 +142,11 @@ where
         }
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(feature = "rayon")]
     fn difference<'a>(&'a self, other: &'a Self) -> Difference<'a, K> {
         Difference { a: self, b: other }
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
     fn symmetric_difference<'a>(&'a self, other: &'a Self) -> SymmetricDifference<'a, K> {
         SymmetricDifference {
@@ -163,7 +154,6 @@ where
         }
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(feature = "rayon")]
     fn symmetric_difference<'a>(&'a self, other: &'a Self) -> SymmetricDifference<'a, K> {
         SymmetricDifference { a: self, b: other }
@@ -209,13 +199,11 @@ where
         }
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
     fn is_superset(&self, other: &Self) -> bool {
         other.is_subset(self)
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(feature = "rayon")]
     fn is_superset(&self, other: &Self) -> bool
     where

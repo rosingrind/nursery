@@ -45,12 +45,10 @@ where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     V: Copy,
 {
-    #[cfg_attr(feature = "inline-more", inline)]
     fn clear(&mut self) {
         self.keys.clear();
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     fn retain<F>(&mut self, f: F)
     where
         F: Fn(&K, &V) -> bool,
@@ -67,7 +65,6 @@ where
         }
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     fn recall<F>(&mut self, f: F) -> Recall<'_, K, V, F>
     where
         F: Fn(&K, &V) -> bool,
@@ -83,7 +80,6 @@ where
         }
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     fn insert_one(&mut self, k: K, v: V) -> Option<V> {
         let cond = self.keys.insert_one(k);
 
@@ -97,7 +93,6 @@ where
         old
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     fn insert_all<I: IntoIterator<Item = (K, V)>>(&mut self, kv: I) {
         for (k, v) in kv {
             let cond = self.keys.insert_one(k);
@@ -110,7 +105,6 @@ where
         }
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     fn delete_one(&mut self, k: K) -> Option<V> {
         self.keys.as_index_one(k).map(|i| {
             self.keys.delete_one_seq_uncheck(k);
@@ -120,7 +114,6 @@ where
         })
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     fn delete_all<I: IntoIterator<Item = K>>(&mut self, k: I) {
         for s in k {
             if let Some(i) = self.keys.as_index_one(s) {

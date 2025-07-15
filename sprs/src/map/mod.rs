@@ -34,7 +34,6 @@ where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
     V: Copy,
 {
-    #[cfg_attr(feature = "inline-more", inline)]
     fn default() -> Self {
         Self::new(SparMap::<K, V>::MAX_K)
     }
@@ -47,7 +46,6 @@ where
 {
     pub const MAX_K: usize = SparSet::<K>::MAX_K;
 
-    #[cfg_attr(feature = "inline-more", inline)]
     #[allow(non_snake_case)]
     pub fn new(N: usize) -> Self {
         Self {
@@ -56,55 +54,45 @@ where
         }
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     pub fn len(&self) -> K {
         self.keys.len()
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     pub fn is_empty(&self) -> bool {
         self.keys.is_empty()
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     pub fn as_keys(&self) -> &[K] {
         self.keys.as_slice()
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     pub fn as_keys_set(&self) -> &impl SetRef<K> {
         &self.keys
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     pub fn as_vals(&self) -> &[V] {
         let len = self.len().as_();
         &self.vals[..len]
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     pub fn as_vals_mut(&mut self) -> &mut [V] {
         let len = self.len().as_();
         &mut self.vals[..len]
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     pub fn query_one(&self, k: K) -> Option<&V> {
         self.keys.as_index_one(k).map(|k| &self.vals[k.as_()])
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     pub fn query_one_mut(&mut self, k: K) -> Option<&mut V> {
         self.keys.as_index_one(k).map(|k| &mut self.vals[k.as_()])
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
     pub fn query_all<I: IntoIterator<Item = K>>(&self, k: I) -> impl Iterator<Item = &V> {
         self.keys.as_index_all(k).map(|k| &self.vals[k.as_()])
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(feature = "rayon")]
     pub fn query_all<I: IntoParallelIterator<Item = K>>(
         &self,
@@ -118,7 +106,6 @@ where
         self.keys.as_index_all(k).map(|k| &self.vals[k.as_()])
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(not(feature = "rayon"))]
     pub fn query_all_mut<I: IntoIterator<Item = K>>(
         &mut self,
@@ -130,7 +117,6 @@ where
         })
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     #[cfg(feature = "rayon")]
     pub fn query_all_mut<I: IntoParallelIterator<Item = K>>(
         &mut self,
@@ -147,7 +133,6 @@ where
         })
     }
 
-    #[cfg_attr(feature = "inline-more", inline)]
     pub fn contains(&self, i: K) -> bool {
         self.keys.contains(i)
     }
@@ -191,7 +176,6 @@ where
     type Item = (&'a K, &'a V);
     type IntoIter = impl_ref::MapIter<'a, K, V>;
 
-    #[cfg_attr(feature = "inline-more", inline)]
     fn into_iter(self) -> impl_ref::MapIter<'a, K, V> {
         self.iter()
     }
@@ -204,7 +188,6 @@ where
     type Item = (&'a K, &'a V);
     type IntoIter = impl_ref::MapIter<'a, K, V>;
 
-    #[cfg_attr(feature = "inline-more", inline)]
     fn into_iter(self) -> impl_ref::MapIter<'a, K, V> {
         self.iter()
     }
@@ -219,7 +202,6 @@ where
     type Item = (&'a K, &'a V);
     type Iter = impl_ref::MapParIter<'a, K, V>;
 
-    #[cfg_attr(feature = "inline-more", inline)]
     fn into_par_iter(self) -> Self::Iter {
         <SparMap<K, V> as MapRef<K, V>>::par_iter(self)
     }
@@ -234,7 +216,6 @@ where
     type Item = (&'a K, &'a V);
     type Iter = impl_ref::MapParIter<'a, K, V>;
 
-    #[cfg_attr(feature = "inline-more", inline)]
     fn into_par_iter(self) -> Self::Iter {
         <SparMap<K, V> as MapRef<K, V>>::par_iter(self)
     }
