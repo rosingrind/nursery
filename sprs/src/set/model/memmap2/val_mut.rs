@@ -5,11 +5,12 @@ use memmap2::{MmapMut, MmapOptions};
 pub struct ValMut<T>(pub(in crate::set) MmapMut, PhantomData<T>);
 
 impl<T> ValMut<T> {
-    pub fn new<F: memmap2::MmapAsRawDesc>(file: F, len: usize, offset: u64) -> io::Result<Self> {
+    pub fn new<F: memmap2::MmapAsRawDesc>(file: F, offset: u64, len: usize) -> io::Result<Self> {
+        assert_eq!(size_of::<T>(), len);
         let mmap = unsafe {
             MmapOptions::new()
-                .len(len)
                 .offset(offset)
+                .len(len)
                 .populate()
                 .map_mut(file)?
         };
@@ -21,9 +22,7 @@ impl<T> AsRef<T> for ValMut<T> {
     fn as_ref(&self) -> &T {
         let data = self.0.as_ref();
         let len = util::func::align_to_offsets::<T, u8>(data);
-        unsafe { core::slice::from_raw_parts(data.as_ptr() as *const T, len) }
-            .first()
-            .unwrap()
+        unsafe { &core::slice::from_raw_parts(data.as_ptr() as *const T, len)[0] }
     }
 }
 
@@ -31,9 +30,7 @@ impl<T> AsMut<T> for ValMut<T> {
     fn as_mut(&mut self) -> &mut T {
         let data = self.0.as_mut();
         let len = util::func::align_to_offsets::<T, u8>(data);
-        unsafe { core::slice::from_raw_parts_mut(data.as_mut_ptr() as *mut T, len) }
-            .first_mut()
-            .unwrap()
+        unsafe { &mut core::slice::from_raw_parts_mut(data.as_mut_ptr() as *mut T, len)[0] }
     }
 }
 

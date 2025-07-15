@@ -22,23 +22,40 @@ impl<K: Unsigned> SparSet<K> {
         Self { len, buf_s, buf_d }
     }
 
-    #[cfg(feature = "memmap2")]
     #[allow(non_snake_case)]
     pub fn from_buf(N: usize, file: File) -> Self {
+        const MAX_BYTE_PRE_LOAD_SIZE: usize = 4usize.pow(30);
+
         assert!(N <= Self::MAX_K);
 
-        let len = ValMut::<K>::new(&file, size_of::<K>(), 0).unwrap();
+        let len = ValMut::<K>::new(&file, 0, size_of::<K>()).unwrap();
         len.0.advise(memmap2::Advice::WillNeed).unwrap();
 
         let l = size_of::<K>() * (N + 1);
 
-        let buf_s = BufMut::<K>::new(&file, l, size_of::<K>() as u64).unwrap();
-        buf_s.0.advise(memmap2::Advice::Sequential).unwrap();
+        let buf_s = BufMut::<K>::new(&file, size_of::<K>() as u64, l).unwrap();
         debug_assert_eq!(buf_s.len(), N + 1);
+        buf_s
+            .0
+            .advise_range(
+                memmap2::Advice::WillNeed,
+                0,
+                l.min(const { size_of::<K>() * MAX_BYTE_PRE_LOAD_SIZE }),
+            )
+            .unwrap();
+        buf_s.0.advise(memmap2::Advice::Random).unwrap();
 
-        let buf_d = BufMut::<K>::new(&file, l, (size_of::<K>() + l) as u64).unwrap();
-        buf_d.0.advise(memmap2::Advice::Sequential).unwrap();
+        let buf_d = BufMut::<K>::new(&file, (size_of::<K>() + l) as u64, l).unwrap();
         debug_assert_eq!(buf_d.len(), N + 1);
+        buf_d
+            .0
+            .advise_range(
+                memmap2::Advice::WillNeed,
+                0,
+                l.min(const { size_of::<K>() * MAX_BYTE_PRE_LOAD_SIZE }),
+            )
+            .unwrap();
+        buf_d.0.advise(memmap2::Advice::Sequential).unwrap();
 
         assert_eq!(buf_s.len(), buf_d.len());
 
