@@ -1,13 +1,13 @@
 use num_traits::{AsPrimitive, Unsigned};
 use std::iter;
 
-use crate::set::{SetMut, SparSet};
+use crate::set::{SetRef, SparSet};
 
 pub(in crate::set) struct RawRecall<'a, K>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
-    pub(in crate::set) iter: std::vec::IntoIter<K>,
+    pub(in crate::set) pos: usize,
     pub(in crate::set) table: &'a mut SparSet<K>,
 }
 
@@ -19,10 +19,13 @@ where
     where
         F: Fn(&K) -> bool,
     {
-        for item in self.iter.by_ref() {
-            if f(&item) {
-                let old = self.table.contains(item).then_some(item);
-                self.table.delete_one(item);
+        while likely_stable::likely(self.pos < self.table.len().as_()) {
+            let item = self.table.as_slice()[self.pos];
+            let cond = f(&item);
+            self.pos += std::hint::select_unpredictable(cond, 0, 1);
+            if cond {
+                let old = Some(item);
+                self.table.delete_one_seq_uncheck(item);
                 return old;
             }
         }
@@ -52,7 +55,8 @@ where
 
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
-        (0, self.inner.iter.size_hint().1)
+        let len = self.inner.table.len().as_() - self.inner.pos;
+        (len, Some(len))
     }
 }
 

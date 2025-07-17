@@ -67,12 +67,10 @@ where
     where
         F: Fn(&K) -> bool,
     {
-        let vec: Vec<_> = self.as_slice().into();
-
         Recall {
             f,
             inner: RawRecall {
-                iter: vec.into_iter(),
+                pos: 0usize,
                 table: self,
             },
         }
