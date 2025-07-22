@@ -5,18 +5,25 @@ use memmap2::{MmapMut, MmapOptions};
 pub struct ValMut<T>(pub MmapMut, PhantomData<T>);
 
 impl<T> ValMut<T> {
-    pub fn new<F: memmap2::MmapAsRawDesc>(file: F, offset: u64) -> io::Result<Self> {
+    pub fn new<F: memmap2::MmapAsRawDesc>(
+        file: F,
+        mode: super::Mode,
+        offset: u64,
+    ) -> io::Result<Self> {
         const {
             assert!(size_of::<T>() != 0);
         };
-        let mmap = unsafe {
-            MmapOptions::new()
-                .offset(offset)
-                .len(size_of::<T>())
-                .populate()
-                .map_mut(file)?
-        };
-        Ok(Self(mmap, PhantomData::<T>))
+
+        let mut opts = MmapOptions::new();
+        opts.offset(offset).len(size_of::<T>()).populate();
+
+        Ok(Self(
+            match mode {
+                super::Mode::Shared => unsafe { opts.map_mut(file) },
+                super::Mode::Private => unsafe { opts.map_copy(file) },
+            }?,
+            PhantomData::<T>,
+        ))
     }
 }
 

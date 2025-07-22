@@ -5,12 +5,26 @@ use memmap2::{MmapMut, MmapOptions};
 pub struct BufMut<T>(pub MmapMut, PhantomData<T>);
 
 impl<T> BufMut<T> {
-    pub fn new<F: memmap2::MmapAsRawDesc>(file: F, offset: u64, len: usize) -> io::Result<Self> {
+    pub fn new<F: memmap2::MmapAsRawDesc>(
+        file: F,
+        mode: super::Mode,
+        offset: u64,
+        len: usize,
+    ) -> io::Result<Self> {
         const {
             assert!(size_of::<T>() != 0);
         };
-        let mmap = unsafe { MmapOptions::new().offset(offset).len(len).map_mut(file)? };
-        Ok(Self(mmap, PhantomData::<T>))
+
+        let mut opts = MmapOptions::new();
+        opts.offset(offset).len(len);
+
+        Ok(Self(
+            match mode {
+                super::Mode::Shared => unsafe { opts.map_mut(file) },
+                super::Mode::Private => unsafe { opts.map_copy(file) },
+            }?,
+            PhantomData::<T>,
+        ))
     }
 }
 

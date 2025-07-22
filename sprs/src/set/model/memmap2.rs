@@ -38,12 +38,12 @@ impl<K: Unsigned> SparSet<K> {
     pub fn from_buf(N: usize, file: File) -> Self {
         assert!(N <= Self::MAX_K);
 
-        let len = ValMut::<K>::new(&file, 0).unwrap();
+        let len = ValMut::<K>::new(&file, Mode::Shared, 0).unwrap();
         len.0.advise(memmap2::Advice::WillNeed).unwrap();
 
         let l = Self::buff_size(N);
 
-        let buf_s = BufMut::<K>::new(&file, size_of::<K>() as u64, l).unwrap();
+        let buf_s = BufMut::<K>::new(&file, Mode::Shared, size_of::<K>() as u64, l).unwrap();
         debug_assert_eq!(buf_s.len(), N + 1);
         buf_s
             .0
@@ -55,7 +55,7 @@ impl<K: Unsigned> SparSet<K> {
             .unwrap();
         buf_s.0.advise(memmap2::Advice::Random).unwrap();
 
-        let buf_d = BufMut::<K>::new(&file, (size_of::<K>() + l) as u64, l).unwrap();
+        let buf_d = BufMut::<K>::new(&file, Mode::Shared, (size_of::<K>() + l) as u64, l).unwrap();
         debug_assert_eq!(buf_d.len(), N + 1);
         buf_d
             .0

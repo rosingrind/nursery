@@ -43,8 +43,13 @@ impl<K: Unsigned, V> SparMap<K, V> {
 
         let l = Self::buff_size(N);
 
-        let vals =
-            BufMut::<V>::new(&file, Self::file_size(N) - Self::buff_size(N) as u64, l).unwrap();
+        let vals = BufMut::<V>::new(
+            &file,
+            Mode::Shared,
+            Self::file_size(N) - Self::buff_size(N) as u64,
+            l,
+        )
+        .unwrap();
         debug_assert_eq!(vals.len(), N + 1);
         vals.0
             .advise_range(
