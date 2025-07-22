@@ -1,6 +1,7 @@
 mod impl_mut;
 mod impl_ops;
 mod impl_ref;
+mod model;
 #[cfg(test)]
 mod tests;
 
@@ -13,21 +14,9 @@ use rayon::prelude::*;
 pub use impl_mut::MapMut;
 pub use impl_ref::MapRef;
 
-use crate::{
-    Key,
-    set::{SetRef, SparSet},
-};
+pub use model::*;
 
-// TOOD: sorted criteria; for example you can store `Pos { x, y }`
-// as `x` and `y`, and sort each other - this allows to query
-// by position (find all by `x` in range, by `y` in range, intersect results)
-#[cfg_attr(feature = "bitcode", derive(Decode, Encode))]
-#[cfg_attr(not(feature = "memmap2"), derive(Clone))]
-pub struct SparMap<K: Unsigned, V> {
-    keys: SparSet<K>,
-    // TOOD: a generic storage (availability to store GPU buffer slice instead of this)
-    vals: Box<[V]>,
-}
+use crate::set::{SetRef, SparSet};
 
 impl<K, V> Default for SparMap<K, V>
 where
@@ -46,51 +35,60 @@ where
 {
     pub const MAX_K: usize = SparSet::<K>::MAX_K;
 
+    #[cfg(feature = "volatile")]
     #[allow(non_snake_case)]
     pub fn new(N: usize) -> Self {
-        Self {
-            keys: SparSet::new(N),
-            vals: unsafe { Box::new_uninit_slice(N + 1).assume_init() },
-        }
+        Self::from_raw(SparSet::new(N), unsafe {
+            Box::new_uninit_slice(N + 1).assume_init()
+        })
+    }
+
+    #[cfg(feature = "memmap2")]
+    #[allow(non_snake_case)]
+    pub fn new(N: usize) -> Self {
+        let file = tempfile::tempfile().unwrap();
+        file.set_len(Self::file_size(N)).unwrap();
+
+        Self::from_buf(N, file)
     }
 
     pub fn len(&self) -> K {
-        self.keys.len()
+        self.k().len()
     }
 
     pub fn is_empty(&self) -> bool {
-        self.keys.is_empty()
+        self.k().is_empty()
     }
 
     pub fn as_keys(&self) -> &[K] {
-        self.keys.as_slice()
+        self.k().as_slice()
     }
 
     pub fn as_keys_set(&self) -> &impl SetRef<K> {
-        &self.keys
+        self.k()
     }
 
     pub fn as_vals(&self) -> &[V] {
         let len = self.len().as_();
-        &self.vals[..len]
+        &self.v()[..len]
     }
 
     pub fn as_vals_mut(&mut self) -> &mut [V] {
         let len = self.len().as_();
-        &mut self.vals[..len]
+        &mut self.v()[..len]
     }
 
     pub fn query_one(&self, k: K) -> Option<&V> {
-        self.keys.as_index_one(k).map(|k| &self.vals[k.as_()])
+        self.k().as_index_one(k).map(|k| &self.v()[k.as_()])
     }
 
     pub fn query_one_mut(&mut self, k: K) -> Option<&mut V> {
-        self.keys.as_index_one(k).map(|k| &mut self.vals[k.as_()])
+        self.k().as_index_one(k).map(|k| &mut self.v()[k.as_()])
     }
 
     #[cfg(not(feature = "rayon"))]
     pub fn query_all<I: IntoIterator<Item = K>>(&self, k: I) -> impl Iterator<Item = &V> {
-        self.keys.as_index_all(k).map(|k| &self.vals[k.as_()])
+        self.k().as_index_all(k).map(|k| &self.v()[k.as_()])
     }
 
     #[cfg(feature = "rayon")]
@@ -103,7 +101,7 @@ where
         V: Send + Sync,
         <I as IntoParallelIterator>::Iter: IndexedParallelIterator,
     {
-        self.keys.as_index_all(k).map(|k| &self.vals[k.as_()])
+        self.k().as_index_all(k).map(|k| &self.v()[k.as_()])
     }
 
     #[cfg(not(feature = "rayon"))]
@@ -111,8 +109,9 @@ where
         &mut self,
         k: I,
     ) -> impl Iterator<Item = &mut V> {
-        self.keys.as_index_all(k).map(|k| {
-            let raw = self.vals.as_ptr().cast_mut();
+        let (keys, vals) = self.kv();
+        keys.as_index_all(k).map(|k| {
+            let raw = vals.as_ptr().cast_mut();
             unsafe { &mut *raw.add(k.as_()) }
         })
     }
@@ -127,21 +126,23 @@ where
         V: Send + Sync,
         <I as IntoParallelIterator>::Iter: IndexedParallelIterator,
     {
-        self.keys.as_index_all(k).map(|k| {
-            let raw = self.vals.as_ptr().cast_mut();
+        let (keys, vals) = self.kv();
+        keys.as_index_all(k).map(|k| {
+            let raw = vals.as_ptr().cast_mut();
             unsafe { &mut *raw.add(k.as_()) }
         })
     }
 
     pub fn contains(&self, i: K) -> bool {
-        self.keys.contains(i)
+        self.k().contains(i)
     }
 
     #[inline]
     pub(crate) fn delete_one_seq_uncheck(&mut self, k: K) {
-        let i = self.keys.as_index_one_uncheck(k);
-        self.keys.delete_one_seq_uncheck(k);
-        self.vals[i.as_()] = self.vals[self.len().as_()];
+        let i = self.k().as_index_one_uncheck(k);
+        self.k().delete_one_seq_uncheck(k);
+        let l = self.len().as_(); // TODO: get rid of temporary variable
+        self.v()[i.as_()] = self.v()[l];
     }
 
     #[allow(dead_code)]

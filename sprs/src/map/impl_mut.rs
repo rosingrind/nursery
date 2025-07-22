@@ -6,7 +6,7 @@ use recall::*;
 
 use crate::set::{SetMut, SetRef};
 
-use super::{MapRef, SparMap};
+use super::{MapRef, model::*};
 
 pub trait MapMut<K, V>
 where
@@ -46,7 +46,7 @@ where
     V: Copy,
 {
     fn clear(&mut self) {
-        self.keys.clear();
+        self.k().clear();
     }
 
     fn retain<F>(&mut self, f: F)
@@ -55,12 +55,13 @@ where
     {
         let mut i = 0usize;
         while likely_stable::likely(i < self.len().as_()) {
-            let k = &self.keys.as_slice()[i];
-            let v = &self.vals[i];
-            let cond = !f(k, v);
+            let (keys, vals) = self.kv();
+            let k = keys.as_slice()[i];
+            let v = &vals[i];
+            let cond = !f(&k, v);
             i += std::hint::select_unpredictable(cond, 0, 1);
             if cond {
-                self.delete_one_seq_uncheck(*k);
+                self.delete_one_seq_uncheck(k);
             }
         }
     }
@@ -81,44 +82,46 @@ where
     }
 
     fn insert_one(&mut self, k: K, v: V) -> Option<V> {
-        let cond = self.keys.insert_one(k);
+        let cond = self.k().insert_one(k);
 
         let k = std::hint::select_unpredictable(
             cond,
-            self.keys.len().as_() - 1,
-            self.keys.as_index_one_uncheck(k).as_(),
+            self.k().len().as_() - 1,
+            self.k().as_index_one_uncheck(k).as_(),
         );
-        let old = std::hint::select_unpredictable(cond, None, self.vals.get(k).copied());
-        self.vals[k] = v;
+        let old = std::hint::select_unpredictable(cond, None, self.v().get(k).copied());
+        self.v()[k] = v;
         old
     }
 
     fn insert_all<I: IntoIterator<Item = (K, V)>>(&mut self, kv: I) {
         for (k, v) in kv {
-            let cond = self.keys.insert_one(k);
+            let cond = self.k().insert_one(k);
             let k = std::hint::select_unpredictable(
                 cond,
-                self.keys.len().as_() - 1,
-                self.keys.as_index_one_uncheck(k).as_(),
+                self.k().len().as_() - 1,
+                self.k().as_index_one_uncheck(k).as_(),
             );
-            self.vals[k] = v;
+            self.v()[k] = v;
         }
     }
 
     fn delete_one(&mut self, k: K) -> Option<V> {
-        self.keys.as_index_one(k).map(|i| {
-            self.keys.delete_one_seq_uncheck(k);
-            let v = self.vals[i.as_()];
-            self.vals[i.as_()] = self.vals[self.len().as_()];
+        self.k().as_index_one(k).map(|i| {
+            self.k().delete_one_seq_uncheck(k);
+            let v = self.v()[i.as_()];
+            let l = self.len().as_();
+            self.v()[i.as_()] = self.v()[l];
             v
         })
     }
 
     fn delete_all<I: IntoIterator<Item = K>>(&mut self, k: I) {
         for s in k {
-            if let Some(i) = self.keys.as_index_one(s) {
-                self.keys.delete_one_seq_uncheck(s);
-                self.vals[i.as_()] = self.vals[self.len().as_()];
+            if let Some(i) = self.k().as_index_one(s) {
+                self.k().delete_one_seq_uncheck(s);
+                let l = self.len().as_();
+                self.v()[i.as_()] = self.v()[l];
             }
         }
     }

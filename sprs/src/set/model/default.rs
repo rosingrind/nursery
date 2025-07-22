@@ -11,7 +11,7 @@ pub struct SparSet<K: Unsigned> {
 
 impl<K: Unsigned> SparSet<K> {
     #[inline]
-    pub(in crate::set) fn from_raw(len: K, buf_s: Box<[K]>, buf_d: Box<[K]>) -> Self {
+    pub(in crate::set) const fn from_raw(len: K, buf_s: Box<[K]>, buf_d: Box<[K]>) -> Self {
         Self { len, buf_s, buf_d }
     }
 }

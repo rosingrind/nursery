@@ -2,7 +2,7 @@ use std::hint::black_box;
 
 use bencher::Bencher;
 use sprs::{
-    KEY_MAX, Key,
+    Key,
     map::{MapMut, SparMap},
 };
 
@@ -26,7 +26,7 @@ fn insert_all(b: &mut Bencher) {
         .collect::<Box<_>>();
 
     b.iter(|| {
-        let mut map = SparMap::<Key, &str>::new(black_box(KEY_MAX));
+        let mut map = SparMap::<Key, &str>::new(black_box(Key::MAX as usize));
         map.insert_all(vec.clone());
         map.insert_all(vec.clone());
     });
@@ -51,7 +51,7 @@ fn delete_all(b: &mut Bencher) {
         .collect::<Box<_>>();
 
     b.iter(|| {
-        let mut map = SparMap::<Key, &str>::new(black_box(KEY_MAX));
+        let mut map = SparMap::<Key, &str>::new(black_box(Key::MAX as usize));
         map.insert_all(add.clone());
         map.delete_all(VEC);
         map.delete_all(VEC);
@@ -68,7 +68,7 @@ fn retain_all(b: &mut Bencher) {
         .collect::<Box<_>>();
 
     b.iter(|| {
-        let mut map = SparMap::<Key, &str>::new(black_box(KEY_MAX));
+        let mut map = SparMap::<Key, &str>::new(black_box(Key::MAX as usize));
         map.insert_all(add.clone());
         map.retain(|_, _| black_box(false));
         map.retain(|_, _| black_box(false));
@@ -85,7 +85,7 @@ fn recall_all(b: &mut Bencher) {
         .collect::<Box<_>>();
 
     b.iter(|| {
-        let mut map = SparMap::<Key, &str>::new(black_box(KEY_MAX));
+        let mut map = SparMap::<Key, &str>::new(black_box(Key::MAX as usize));
         map.insert_all(add.clone());
         black_box(map.recall(|_, _| black_box(true)).collect::<Box<[_]>>());
         black_box(map.recall(|_, _| black_box(true)).collect::<Box<[_]>>());

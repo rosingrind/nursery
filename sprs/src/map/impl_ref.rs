@@ -2,7 +2,7 @@ use num_traits::{AsPrimitive, Unsigned};
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;
 
-use super::SparMap;
+use super::model::*;
 
 pub(super) type MapIter<'a, K, V> =
     std::iter::Zip<std::slice::Iter<'a, K>, std::slice::Iter<'a, V>>;
@@ -30,7 +30,7 @@ where
     fn iter(&self) -> MapIter<K, V> {
         use crate::set::SetRef;
 
-        self.keys.iter().zip(self.vals.iter())
+        self.k().iter().zip(self.v().iter())
     }
 
     #[cfg(feature = "rayon")]
@@ -39,6 +39,6 @@ where
         K: Sync,
         V: Sync,
     {
-        self.keys.par_iter().zip(self.vals.par_iter())
+        self.k().par_iter().zip(self.v().par_iter())
     }
 }

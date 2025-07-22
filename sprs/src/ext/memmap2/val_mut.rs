@@ -2,15 +2,17 @@ use std::{io, marker::PhantomData, ops};
 
 use memmap2::{MmapMut, MmapOptions};
 
-pub struct ValMut<T>(pub(in crate::set) MmapMut, PhantomData<T>);
+pub struct ValMut<T>(pub MmapMut, PhantomData<T>);
 
 impl<T> ValMut<T> {
-    pub fn new<F: memmap2::MmapAsRawDesc>(file: F, offset: u64, len: usize) -> io::Result<Self> {
-        assert_eq!(size_of::<T>(), len);
+    pub fn new<F: memmap2::MmapAsRawDesc>(file: F, offset: u64) -> io::Result<Self> {
+        const {
+            assert!(size_of::<T>() != 0);
+        };
         let mmap = unsafe {
             MmapOptions::new()
                 .offset(offset)
-                .len(len)
+                .len(size_of::<T>())
                 .populate()
                 .map_mut(file)?
         };

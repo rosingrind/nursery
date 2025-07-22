@@ -2,7 +2,7 @@ use std::hint::black_box;
 
 use bencher::Bencher;
 use sprs::{
-    KEY_MAX, Key,
+    Key,
     set::{SetMut, SparSet},
 };
 
@@ -18,7 +18,7 @@ fn insert_one(b: &mut Bencher) {
 
 fn insert_all(b: &mut Bencher) {
     b.iter(|| {
-        let mut set = SparSet::<Key>::new(black_box(KEY_MAX));
+        let mut set = SparSet::<Key>::new(black_box(Key::MAX as usize));
         set.insert_all(VEC);
         set.insert_all(VEC);
     });
@@ -35,7 +35,7 @@ fn delete_one(b: &mut Bencher) {
 
 fn delete_all(b: &mut Bencher) {
     b.iter(|| {
-        let mut set = SparSet::<Key>::new(black_box(KEY_MAX));
+        let mut set = SparSet::<Key>::new(black_box(Key::MAX as usize));
         set.insert_all(VEC);
         set.delete_all(VEC);
         set.delete_all(VEC);
@@ -44,7 +44,7 @@ fn delete_all(b: &mut Bencher) {
 
 fn retain_all(b: &mut Bencher) {
     b.iter(|| {
-        let mut set = SparSet::<Key>::new(black_box(KEY_MAX));
+        let mut set = SparSet::<Key>::new(black_box(Key::MAX as usize));
         set.insert_all(VEC);
         set.retain(|_| black_box(false));
         set.retain(|_| black_box(false));
@@ -53,7 +53,7 @@ fn retain_all(b: &mut Bencher) {
 
 fn recall_all(b: &mut Bencher) {
     b.iter(|| {
-        let mut set = SparSet::<Key>::new(black_box(KEY_MAX));
+        let mut set = SparSet::<Key>::new(black_box(Key::MAX as usize));
         set.insert_all(VEC);
         black_box(set.recall(|_| black_box(true)).collect::<Box<[_]>>());
         black_box(set.recall(|_| black_box(true)).collect::<Box<[_]>>());

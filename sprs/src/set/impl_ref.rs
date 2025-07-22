@@ -12,7 +12,7 @@ pub(super) use intersection::*;
 pub(super) use symmetric_difference::*;
 pub(super) use union::*;
 
-use super::{SparSet, model::*};
+use super::model::*;
 
 pub type SetIter<'a, K> = std::slice::Iter<'a, K>;
 #[cfg(feature = "rayon")]
@@ -102,7 +102,7 @@ where
     where
         K: Sync,
     {
-        self.dense()[..self.len().as_()].par_iter()
+        self.d()[..self.l().as_()].par_iter()
     }
 
     #[cfg(not(feature = "rayon"))]
@@ -162,7 +162,7 @@ where
     #[cfg(not(feature = "rayon"))]
     fn is_disjoint(&self, other: &Self) -> bool {
         self.intersection(other).next().is_none()
-        // if self.len() <= other.len() {
+        // if self.l() <= other.l() {
         //     self.iter().all(|v| !other.contains(*v))
         // } else {
         //     other.iter().all(|v| !self.contains(*v))
@@ -180,7 +180,7 @@ where
     #[cfg(not(feature = "rayon"))]
     fn is_subset(&self, other: &Self) -> bool {
         self.l() <= other.l() && self.iter().all(|&v| other.contains(v))
-        // if self.len() <= other.len() {
+        // if self.l() <= other.l() {
         //     self.iter().all(|v| other.contains(*v))
         // } else {
         //     false
@@ -192,7 +192,7 @@ where
     where
         K: Sync,
     {
-        if self.len() <= other.len() {
+        if self.l() <= other.l() {
             <Self as SetRef<K>>::par_iter(self).all(|x| other.contains(*x))
         } else {
             false

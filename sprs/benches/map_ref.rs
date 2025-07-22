@@ -2,7 +2,7 @@ use std::hint::black_box;
 
 use bencher::Bencher;
 use sprs::{
-    KEY_MAX, Key,
+    Key,
     map::{MapMut, SparMap},
 };
 
@@ -39,7 +39,7 @@ fn query_all(b: &mut Bencher) {
         .collect::<Box<_>>();
 
     b.iter(|| {
-        let mut map = SparMap::<Key, &str>::new(black_box(KEY_MAX));
+        let mut map = SparMap::<Key, &str>::new(black_box(Key::MAX as usize));
         map.insert_all(add.clone());
         black_box(map.query_all(VEC).collect::<Box<_>>());
         black_box(map.query_all(VEC).collect::<Box<_>>());

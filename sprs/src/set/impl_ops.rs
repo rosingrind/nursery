@@ -5,7 +5,7 @@ use std::fmt::{self, Debug};
 
 use num_traits::{AsPrimitive, Unsigned};
 
-use super::{SetRef, SparSet};
+use super::{SetRef, model::*};
 
 impl<K> PartialEq for SparSet<K>
 where

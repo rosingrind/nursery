@@ -2,7 +2,7 @@ use std::hint::black_box;
 
 use bencher::Bencher;
 use sprs::{
-    KEY_MAX, Key,
+    Key,
     set::{SetMut, SetRef, SparSet},
 };
 
@@ -22,8 +22,8 @@ fn contains(b: &mut Bencher) {
 
 fn intersection(b: &mut Bencher) {
     b.iter(|| {
-        let mut l = SparSet::<Key>::new(black_box(KEY_MAX));
-        let mut r = SparSet::<Key>::new(black_box(KEY_MAX));
+        let mut l = SparSet::<Key>::new(black_box(Key::MAX as usize));
+        let mut r = SparSet::<Key>::new(black_box(Key::MAX as usize));
         l.insert_all(VEC);
         r.insert_all(VEC.rev());
 
@@ -34,8 +34,8 @@ fn intersection(b: &mut Bencher) {
 
 fn union(b: &mut Bencher) {
     b.iter(|| {
-        let mut l = SparSet::<Key>::new(black_box(KEY_MAX));
-        let mut r = SparSet::<Key>::new(black_box(KEY_MAX));
+        let mut l = SparSet::<Key>::new(black_box(Key::MAX as usize));
+        let mut r = SparSet::<Key>::new(black_box(Key::MAX as usize));
         l.insert_all(VEC);
         r.insert_all(VEC.rev());
 
@@ -46,8 +46,8 @@ fn union(b: &mut Bencher) {
 
 fn difference(b: &mut Bencher) {
     b.iter(|| {
-        let mut l = SparSet::<Key>::new(black_box(KEY_MAX));
-        let mut r = SparSet::<Key>::new(black_box(KEY_MAX));
+        let mut l = SparSet::<Key>::new(black_box(Key::MAX as usize));
+        let mut r = SparSet::<Key>::new(black_box(Key::MAX as usize));
         l.insert_all(VEC);
         r.insert_all(VEC.rev());
 

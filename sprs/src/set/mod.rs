@@ -24,7 +24,7 @@ impl<K: Unsigned> Default for SparSet<K> {
 impl<K: Unsigned> SparSet<K> {
     pub const MAX_K: usize = 2usize.pow(size_of::<K>() as u32 * 8) - 1;
 
-    #[cfg(not(feature = "memmap2"))]
+    #[cfg(feature = "volatile")]
     #[allow(non_snake_case)]
     pub fn new(N: usize) -> Self {
         assert!(N <= Self::MAX_K);
@@ -39,9 +39,8 @@ impl<K: Unsigned> SparSet<K> {
     #[cfg(feature = "memmap2")]
     #[allow(non_snake_case)]
     pub fn new(N: usize) -> Self {
-        let len = size_of::<K>() + size_of::<K>() * 2 * (N + 1);
         let file = tempfile::tempfile().unwrap();
-        file.set_len(len as u64).unwrap();
+        file.set_len(Self::file_size(N)).unwrap();
 
         Self::from_buf(N, file)
     }

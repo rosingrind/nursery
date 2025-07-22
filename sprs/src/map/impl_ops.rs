@@ -5,7 +5,7 @@ use std::{
 
 use num_traits::{AsPrimitive, Unsigned};
 
-use super::{SparMap, impl_mut::MapMut, impl_ref::MapRef};
+use super::{impl_mut::MapMut, impl_ref::MapRef, model::*};
 
 impl<K, V> PartialEq for SparMap<K, V>
 where

@@ -1,54 +1,75 @@
-use itertools::Itertools;
-use sprs::{
-    KEY_MAX, Key,
-    map::{MapMut, MapRef, SparMap},
-};
+use sprs::{Key, map::*};
 
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;
 
+const fn expand(x: Key) -> (u16, u64) {
+    (x, x as u64)
+}
+const VEC: std::ops::Range<Key> = 0..Key::MAX;
+const KEY: Key = VEC.end - 1;
+
 #[test]
 fn insert_all() {
-    const VEC: std::ops::Range<Key> = 0..Key::MAX;
+    #[cfg(feature = "volatile")]
+    let mut map = SparMap::<_, _>::new(Key::MAX as usize);
 
-    let mut map = SparMap::<_, _>::new(KEY_MAX);
-    let tmp = VEC.map(|x| (x, x.to_string())).collect::<Vec<_>>();
-    let all = tmp
-        .iter()
-        .map(|(k, v)| (*k, v.as_str()))
-        .collect::<Vec<_>>();
+    #[cfg(feature = "memmap2")]
+    let mut map = {
+        use std::fs::File;
 
-    map.insert_all(all.clone());
-    assert_eq!(map.iter().map(|(k, v)| (*k, *v)).collect::<Vec<_>>(), all);
-    map.insert_all(all.clone());
-    assert_eq!(map.iter().map(|(k, v)| (*k, *v)).collect::<Vec<_>>(), all);
-    assert_eq!(map.query_one(VEC.end - 1), Some(&"65534"));
-    assert_eq!(
-        map.as_vals(),
-        all.iter().map(|(_, v)| *v).collect::<Vec<_>>()
+        const PATH: &str = "map_uge.insert_all.bin";
+
+        let file = File::create_new(PATH)
+            .and_then(|f| {
+                f.set_len(SparMap::<Key, u64>::file_size(Key::MAX as usize))?;
+                Ok(f)
+            })
+            .or(File::options().read(true).write(true).open(PATH))
+            .unwrap();
+        SparMap::<_, _>::from_buf(Key::MAX as usize, file)
+    };
+
+    map.insert_all(VEC.map(expand));
+    itertools::assert_equal(map.iter().map(|(k, v)| (*k, *v)), VEC.map(expand));
+    map.insert_all(VEC.map(expand));
+    itertools::assert_equal(map.iter().map(|(k, v)| (*k, *v)), VEC.map(expand));
+    assert_eq!(map.query_one(KEY), Some(&expand(KEY).1));
+    itertools::assert_equal(
+        map.as_vals().iter().copied(),
+        VEC.map(expand).map(|(_, v)| v),
     );
-    assert_eq!(map.len(), VEC.end);
+    assert_eq!(map.len() as usize, VEC.len());
 }
 
 #[test]
 fn delete_all() {
-    const VEC_A: std::ops::Range<Key> = 0..Key::MAX;
-    const VEC_B: std::ops::Range<Key> = 0..Key::MAX - 1;
-    const KEY_TMP: usize = VEC_A.end as usize - 1;
+    #[cfg(feature = "volatile")]
+    let mut map = SparMap::<_, _>::new(Key::MAX as usize);
 
-    let mut map = SparMap::<_, _>::new(KEY_MAX);
-    let tmp = VEC_A.map(|x| (x, x.to_string())).collect::<Box<_>>();
-    let all = tmp
-        .iter()
-        .map(|(k, v)| (*k, v.as_str()))
-        .collect::<Box<_>>();
+    #[cfg(feature = "memmap2")]
+    let mut map = {
+        const PATH: &str = "map_uge.delete_all.bin";
 
-    map.insert_all(all.clone());
-    map.delete_all(VEC_B);
-    assert_eq!(map.as_vals(), [all[KEY_TMP].1]);
-    map.delete_all(VEC_B);
-    assert_eq!(map.as_vals(), [all[KEY_TMP].1]);
-    assert_eq!(map.query_one(VEC_A.end - 1), Some(&"65534"));
-    assert_eq!(map.query_all(VEC_A).collect::<Vec<_>>(), [&"65534"]);
+        let file = std::fs::File::create_new(PATH)
+            .and_then(|f| {
+                f.set_len(SparMap::<Key, u64>::file_size(Key::MAX as usize))?;
+                Ok(f)
+            })
+            .or(std::fs::File::options().read(true).write(true).open(PATH))
+            .unwrap();
+        SparMap::<_, _>::from_buf(Key::MAX as usize, file)
+    };
+
+    map.insert_all(VEC.map(expand));
+    map.delete_all(VEC.take(VEC.len() - 1));
+    assert_eq!(map.as_vals(), &[KEY as u64]);
+    map.delete_all(VEC.take(VEC.len() - 1));
+    assert_eq!(map.as_vals(), &[KEY as u64]);
+    assert_eq!(map.query_one(KEY), Some(&expand(KEY).1));
+    #[cfg(not(feature = "rayon"))]
+    itertools::assert_equal(map.query_all(VEC), std::iter::once(&expand(KEY).1));
+    #[cfg(feature = "rayon")]
+    assert_eq!(&*map.query_all(VEC).collect::<Box<_>>(), [&expand(KEY).1]);
     assert_eq!(map.len(), 1);
 }
