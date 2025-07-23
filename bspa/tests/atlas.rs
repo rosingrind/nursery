@@ -4,6 +4,8 @@ mod common;
 #[cfg(feature = "test-utils")]
 use bspa::Node;
 use bspa::{Area, Beam, BspaNode, Placement, Rect, RectGroup};
+#[cfg(feature = "rayon")]
+use rayon::prelude::*;
 
 const BW: usize = 150_000;
 const BB: usize = 15_000;

@@ -1,5 +1,8 @@
 mod mock;
 
+#[cfg(feature = "rayon")]
+use rayon::prelude::*;
+
 use crate::{Beam, Node};
 
 #[test]

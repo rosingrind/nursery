@@ -121,15 +121,38 @@ impl<const W: usize, const B: usize, T> Beam<W, B, T>
 where
     T: Node<B>,
 {
+    #[cfg(not(feature = "rayon"))]
     #[inline]
     pub fn has_fulfilled(&self) -> bool {
         self.nodes().any(|n| n.has_fulfilled())
     }
 
+    #[cfg(feature = "rayon")]
+    #[inline]
+    pub fn has_fulfilled(&self) -> bool
+    where
+        T: Sync,
+    {
+        self.nodes().any(|n| n.has_fulfilled())
+    }
+
+    #[cfg(not(feature = "rayon"))]
     #[inline]
     pub fn nodes(&self) -> impl Iterator<Item = &T> {
         self.node_buf
             .chunks_exact(self.node_buf.len() / self.len)
+            .map(|c| unsafe { c.first().unwrap_unchecked().assume_init_ref() })
+            .filter(|c| c.has_fulfilled())
+    }
+
+    #[cfg(feature = "rayon")]
+    #[inline]
+    pub fn nodes(&self) -> impl ParallelIterator<Item = &T>
+    where
+        T: Sync,
+    {
+        self.node_buf
+            .par_chunks_exact(self.node_buf.len() / self.len)
             .map(|c| unsafe { c.first().unwrap_unchecked().assume_init_ref() })
             .filter(|c| c.has_fulfilled())
     }
