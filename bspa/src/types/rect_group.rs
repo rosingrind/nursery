@@ -3,6 +3,8 @@ mod area;
 use std::sync::OnceLock;
 
 use itertools::Itertools;
+#[cfg(feature = "rayon")]
+use rayon::prelude::*;
 
 use crate::{Area, Placement, Rect};
 
@@ -41,6 +43,18 @@ impl FromIterator<Placement<Rect>> for RectGroup {
     fn from_iter<T: IntoIterator<Item = Placement<Rect>>>(iter: T) -> Self {
         Self {
             list: iter.into_iter().collect(),
+            a: OnceLock::new(),
+            f: OnceLock::new(),
+            w: OnceLock::new(),
+            h: OnceLock::new(),
+        }
+    }
+}
+#[cfg(feature = "rayon")]
+impl FromParallelIterator<Placement<Rect>> for RectGroup {
+    fn from_par_iter<I: IntoParallelIterator<Item = Placement<Rect>>>(par_iter: I) -> Self {
+        Self {
+            list: par_iter.into_par_iter().collect(),
             a: OnceLock::new(),
             f: OnceLock::new(),
             w: OnceLock::new(),

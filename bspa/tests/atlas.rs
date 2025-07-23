@@ -66,10 +66,12 @@ fn simple_atlas_packing() {
 
     assert!(
         beam.nodes().any(|x| {
-            x.blocks()
-                .to_owned()
-                .into_iter()
-                .flat_map(|b| b.into_placed_rects())
+            #[cfg(not(feature = "rayon"))]
+            let iter = x.blocks().to_owned().into_iter();
+            #[cfg(feature = "rayon")]
+            let iter = x.blocks().to_owned().into_par_iter();
+
+            iter.flat_map(|b| b.into_placed_rects())
                 .collect::<RectGroup>()
                 .area()
                 == data.area()
@@ -77,12 +79,12 @@ fn simple_atlas_packing() {
         "beam.nodes().blocks: {:#?}",
         beam.nodes()
             .map(|x| {
-                let mut c = x
-                    .blocks()
-                    .to_owned()
-                    .into_iter()
-                    .flat_map(|b| b.into_placed_rects())
-                    .collect::<Vec<_>>();
+                #[cfg(not(feature = "rayon"))]
+                let iter = x.blocks().to_owned().into_iter();
+                #[cfg(feature = "rayon")]
+                let iter = x.blocks().to_owned().into_par_iter();
+
+                let mut c = iter.flat_map(|b| b.into_placed_rects()).collect::<Vec<_>>();
                 c.sort_by_key(|k| (k.x as u64) | ((k.y as u64) << 8));
                 c
             })
@@ -138,22 +140,22 @@ fn varied_atlas_packing() {
 
     assert!(
         beam.nodes().any(|x| {
-            x.blocks()
-                .to_owned()
-                .into_iter()
-                .flat_map(|b| b.into_placed_rects())
-                .count()
-                == ITEMS.len()
+            #[cfg(not(feature = "rayon"))]
+            let iter = x.blocks().to_owned().into_iter();
+            #[cfg(feature = "rayon")]
+            let iter = x.blocks().to_owned().into_par_iter();
+
+            iter.flat_map(|b| b.into_placed_rects()).count() == ITEMS.len()
         }),
         "beam.nodes().blocks: {:#?}",
         beam.nodes()
             .filter_map(|x| {
-                let mut c = x
-                    .blocks()
-                    .to_owned()
-                    .into_iter()
-                    .flat_map(|b| b.into_placed_rects())
-                    .collect::<Vec<_>>();
+                #[cfg(not(feature = "rayon"))]
+                let iter = x.blocks().to_owned().into_iter();
+                #[cfg(feature = "rayon")]
+                let iter = x.blocks().to_owned().into_par_iter();
+
+                let mut c = iter.flat_map(|b| b.into_placed_rects()).collect::<Vec<_>>();
                 c.sort_by_key(|k| (k.x as u64) | ((k.y as u64) << 8));
                 (!c.is_empty()).then_some(c)
             })

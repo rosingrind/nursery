@@ -119,12 +119,26 @@ impl<T: Area> Placement<T> {
 }
 
 impl Placement<RectGroup> {
+    #[cfg(not(feature = "rayon"))]
     pub fn into_placed_rects(self) -> impl Iterator<Item = Placement<Rect>> {
         self.item.list.into_iter().map(move |p| Placement {
             x: self.x + p.x,
             y: self.y + p.y,
             item: p.item,
         })
+    }
+
+    #[cfg(feature = "rayon")]
+    pub fn into_placed_rects(self) -> impl ParallelIterator<Item = Placement<Rect>> {
+        self.item
+            .list
+            .into_iter()
+            .map(move |p| Placement {
+                x: self.x + p.x,
+                y: self.y + p.y,
+                item: p.item,
+            })
+            .par_bridge()
     }
 }
 
