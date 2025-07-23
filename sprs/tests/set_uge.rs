@@ -1,6 +1,7 @@
 use sprs::{Key, set::*};
 
 #[cfg(feature = "rayon")]
+#[allow(unused_imports)]
 use rayon::prelude::*;
 
 const VEC: std::ops::Range<Key> = 0..Key::MAX;

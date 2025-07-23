@@ -1,6 +1,7 @@
 use sprs::{Key, map::*};
 
 #[cfg(feature = "rayon")]
+#[allow(unused_imports)]
 use rayon::prelude::*;
 
 const fn expand(x: Key) -> (u16, u64) {

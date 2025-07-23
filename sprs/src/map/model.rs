@@ -20,6 +20,7 @@ where
     fn k(&self) -> &SparSet<K>;
     /// Get model's vals as `&`
     fn v(&self) -> &[V];
+    #[allow(dead_code)]
     /// Get model's `(keys, vals)` tuple as `(&, &)`
     fn kv(&self) -> (&SparSet<K>, &[V]);
 }
