@@ -3,6 +3,7 @@ name = "sprsdata"
 version = "0.1.0"
 authors = ["rosingrind"]
 edition = "2024"
+license = "MIT OR Apache-2.0"
 description = "Data structures based on sparse and dense arrays"
 repository = "https://github.com/rosingrind/nursery/sprs"
 keywords = ["hashmap", "hashset", "map", "set", "nohash", "ecs"]
