@@ -3,8 +3,10 @@ name = "beamsrch"
 version = "0.1.0"
 authors = ["rosingrind"]
 edition = "2024"
+description = "Beam search heuristic abstraction"
 repository = "https://github.com/rosingrind/nursery/beamsrch"
 keywords = ["heuristic", "algorithm"]
+categories = ["algorithms", "simulation"]
 
 [dependencies]
 rayon = { workspace = true, optional = true }

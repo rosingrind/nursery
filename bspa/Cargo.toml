@@ -3,8 +3,10 @@ name = "bspa"
 version = "0.1.0"
 authors = ["rosingrind"]
 edition = "2024"
+description = "Beam search packing algorithm"
 repository = "https://github.com/rosingrind/nursery/bspa"
 keywords = ["packing", "algorithm"]
+categories = ["algorithms", "compression"]
 
 [dependencies]
 beamsrch = { version = "0.1.0", path = "../beamsrch" }

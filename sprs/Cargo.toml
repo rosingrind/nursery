@@ -3,8 +3,10 @@ name = "sprs"
 version = "0.1.0"
 authors = ["rosingrind"]
 edition = "2024"
+description = "Data structures based on sparse and dense arrays"
 repository = "https://github.com/rosingrind/nursery/sprs"
-keywords = ["hashmap", "hashset", "map", "set", "nohash"]
+keywords = ["hashmap", "hashset", "map", "set", "nohash", "ecs"]
+categories = ["data-structures"]
 
 [dependencies]
 bitvec = { package = "bitvec_simd", version = "0.20.5" }
