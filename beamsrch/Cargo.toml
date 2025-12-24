@@ -1,7 +1,10 @@
 [package]
-name = "beam"
+name = "beamsrch"
 version = "0.1.0"
+authors = ["rosingrind"]
 edition = "2024"
+repository = "https://github.com/rosingrind/nursery/beamsrch"
+keywords = ["heuristic", "algorithm"]
 
 [dependencies]
 rayon = { workspace = true, optional = true }

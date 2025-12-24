@@ -3,7 +3,7 @@ mod mock;
 
 use std::hint::black_box;
 
-use beam::{Beam, BeamError, Node};
+use beamsrch::{Beam, BeamError, Node};
 use bencher::Bencher;
 
 const BW: usize = 50;

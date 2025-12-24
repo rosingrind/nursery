@@ -1,7 +1,10 @@
 [package]
 name = "sprs"
 version = "0.1.0"
+authors = ["rosingrind"]
 edition = "2024"
+repository = "https://github.com/rosingrind/nursery/sprs"
+keywords = ["hashmap", "hashset", "map", "set", "nohash"]
 
 [dependencies]
 bitvec = { package = "bitvec_simd", version = "0.20.5" }

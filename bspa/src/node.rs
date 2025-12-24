@@ -5,7 +5,7 @@ mod tests;
 
 use std::mem::{self, MaybeUninit};
 
-use beam::{BeamError, Node};
+use beamsrch::{BeamError, Node};
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;
 use rustc_hash::FxHashMap;

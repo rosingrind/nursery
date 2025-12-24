@@ -1,6 +1,6 @@
 use std::hint::black_box;
 
-use beam::Beam;
+use beamsrch::Beam;
 use bencher::Bencher;
 use bspa::{Area, BspaNode, Rect};
 
@@ -19,7 +19,7 @@ fn simple_atlas_packing(b: &mut Bencher) {
 
     b.iter(|| {
         let mut beam: Beam<BW, BB, _> = node.clone().into();
-        while black_box(beam.cycle()) != Err(beam::BeamError::Exhausted) {}
+        while black_box(beam.cycle()) != Err(beamsrch::BeamError::Exhausted) {}
     });
 }
 
@@ -52,7 +52,7 @@ fn varied_atlas_packing(b: &mut Bencher) {
 
     b.iter(|| {
         let mut beam: Beam<BW, BB, _> = node.clone().into();
-        while black_box(beam.cycle()) != Err(beam::BeamError::Exhausted) {}
+        while black_box(beam.cycle()) != Err(beamsrch::BeamError::Exhausted) {}
 
         beam.extend();
         while !black_box(beam.has_fulfilled()) && black_box(beam.cycle()).is_ok() {}

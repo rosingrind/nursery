@@ -9,7 +9,7 @@ use itertools::Itertools;
 use rayon::prelude::*;
 use rustc_hash::FxHashMap;
 
-pub use beam::*;
+pub use beamsrch::*;
 pub use types::*;
 
 pub trait Area {

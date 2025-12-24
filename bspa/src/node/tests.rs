@@ -1,4 +1,4 @@
-use beam::Node;
+use beamsrch::Node;
 
 use crate::{Area, BspaNode, types::*};
 

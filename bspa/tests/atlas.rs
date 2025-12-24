@@ -22,7 +22,7 @@ fn simple_atlas_packing() {
     let node = BspaNode::new(ITEMS, 32, N, F);
     let mut beam: Beam<BW, BB, _> = node.into();
 
-    while !(matches!(beam.cycle(), Err(beam::BeamError::Exhausted)) || beam.has_fulfilled()) {}
+    while !(matches!(beam.cycle(), Err(beamsrch::BeamError::Exhausted)) || beam.has_fulfilled()) {}
 
     #[cfg(feature = "test-utils")]
     common::save_pg(
@@ -121,7 +121,7 @@ fn varied_atlas_packing() {
     );
     let mut beam: Beam<BW, BB, _> = node.into();
 
-    while !(matches!(beam.cycle(), Err(beam::BeamError::Exhausted)) || beam.has_fulfilled()) {}
+    while !(matches!(beam.cycle(), Err(beamsrch::BeamError::Exhausted)) || beam.has_fulfilled()) {}
 
     beam.extend();
     while !beam.has_fulfilled() {

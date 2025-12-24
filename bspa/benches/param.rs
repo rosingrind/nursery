@@ -1,6 +1,6 @@
 use std::hint::black_box;
 
-use beam::Beam;
+use beamsrch::Beam;
 use bencher::Bencher;
 use bspa::{BspaNode, Rect};
 
