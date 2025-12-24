@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-beam.workspace = true
+beam = { version = "0.1.0", path = "../beam" }
 itertools = { workspace = true, default-features = false }
 likely_stable.workspace = true
 rayon = { workspace = true, optional = true }
@@ -12,8 +12,8 @@ rustc-hash.workspace = true
 
 [dev-dependencies]
 bencher.workspace = true
-image = "0.25.6"
-rand = "0.9.1"
+image = "0.25.9"
+rand = "0.9.2"
 
 [features]
 default = []

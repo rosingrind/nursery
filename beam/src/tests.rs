@@ -43,7 +43,7 @@ fn simple_cycle() {
 fn varied_cycle() {
     const BW: usize = 75;
     const BB: usize = 75;
-    const TH: usize = 1_400;
+    const TH: usize = 1_425;
 
     let node = mock::MockNode::<TH>::default();
     let mut beam: Beam<BW, BB, _> = node.into();
