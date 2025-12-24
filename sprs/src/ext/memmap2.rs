@@ -4,6 +4,18 @@ mod val_mut;
 pub use buf_mut::*;
 pub use val_mut::*;
 
+const fn align_to_offsets<T, U>(data: &[U]) -> usize {
+    const fn gcd(a: usize, b: usize) -> usize {
+        if b == 0 { a } else { gcd(b, a % b) }
+    }
+
+    let gcd: usize = const { gcd(size_of::<U>(), size_of::<T>()) };
+    let ts: usize = size_of::<T>() / gcd;
+    let us: usize = size_of::<U>() / gcd;
+
+    data.len() / ts * us
+}
+
 /// Docs from https://man7.org/linux/man-pages/man2/mmap.2.html
 pub enum Mode {
     /// `MAP_SHARED` flag

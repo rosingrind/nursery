@@ -31,7 +31,7 @@ impl<T> BufMut<T> {
 impl<T> AsRef<[T]> for BufMut<T> {
     fn as_ref(&self) -> &[T] {
         let data = self.0.as_ref();
-        let len = util::func::align_to_offsets::<T, u8>(data);
+        let len = super::align_to_offsets::<T, u8>(data);
         unsafe { core::slice::from_raw_parts(data.as_ptr() as *const T, len) }
     }
 }
@@ -39,7 +39,7 @@ impl<T> AsRef<[T]> for BufMut<T> {
 impl<T> AsMut<[T]> for BufMut<T> {
     fn as_mut(&mut self) -> &mut [T] {
         let data = self.0.as_mut();
-        let len = util::func::align_to_offsets::<T, u8>(data);
+        let len = super::align_to_offsets::<T, u8>(data);
         unsafe { core::slice::from_raw_parts_mut(data.as_mut_ptr() as *mut T, len) }
     }
 }

@@ -25,10 +25,10 @@ where
     /// Returns raw dense indexes slice
     fn as_slice(&self) -> &[K];
 
-    fn iter(&self) -> SetIter<K>;
+    fn iter(&self) -> SetIter<'_, K>;
 
     #[cfg(feature = "rayon")]
-    fn par_iter(&self) -> SetParIter<K>
+    fn par_iter(&self) -> SetParIter<'_, K>
     where
         K: Sync;
 
@@ -93,12 +93,12 @@ where
         &self.d()[..self.l().as_()]
     }
 
-    fn iter(&self) -> SetIter<K> {
+    fn iter(&self) -> SetIter<'_, K> {
         self.d()[..self.l().as_()].iter()
     }
 
     #[cfg(feature = "rayon")]
-    fn par_iter(&self) -> SetParIter<K>
+    fn par_iter(&self) -> SetParIter<'_, K>
     where
         K: Sync,
     {

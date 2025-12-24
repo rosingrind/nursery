@@ -14,10 +14,10 @@ pub trait MapRef<K, V>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
-    fn iter(&self) -> MapIter<K, V>;
+    fn iter(&self) -> MapIter<'_, K, V>;
 
     #[cfg(feature = "rayon")]
-    fn par_iter(&self) -> MapParIter<K, V>
+    fn par_iter(&self) -> MapParIter<'_, K, V>
     where
         K: Sync,
         V: Sync;
@@ -27,14 +27,14 @@ impl<K, V> MapRef<K, V> for SparMap<K, V>
 where
     K: Unsigned + AsPrimitive<usize> + Copy + PartialOrd,
 {
-    fn iter(&self) -> MapIter<K, V> {
+    fn iter(&self) -> MapIter<'_, K, V> {
         use crate::set::SetRef;
 
         self.k().iter().zip(self.v().iter())
     }
 
     #[cfg(feature = "rayon")]
-    fn par_iter(&self) -> MapParIter<K, V>
+    fn par_iter(&self) -> MapParIter<'_, K, V>
     where
         K: Sync,
         V: Sync,

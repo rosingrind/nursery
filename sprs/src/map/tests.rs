@@ -1,5 +1,6 @@
 use super::*;
 
+#[cfg(not(feature = "memmap2"))]
 use rand::{Rng, SeedableRng, rngs::SmallRng};
 use std::vec::Vec;
 
@@ -525,7 +526,7 @@ fn test_index_nonexistent() {
     map.insert_one(2, 1);
     map.insert_one(3, 4);
 
-    #[allow(clippy::no_effect)] // false positive lint
+    #[allow(clippy::no_effect, clippy::unnecessary_operation)] // false positive lint
     map[4];
 }
 

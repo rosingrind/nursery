@@ -5,8 +5,6 @@ mod model;
 #[cfg(test)]
 mod tests;
 
-#[cfg(feature = "bitcode")]
-use bitcode::{Decode, Encode};
 use num_traits::{AsPrimitive, Unsigned};
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;
