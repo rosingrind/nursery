@@ -1,5 +1,5 @@
 [package]
-name = "sprs"
+name = "sprsdata"
 version = "0.1.0"
 authors = ["rosingrind"]
 edition = "2024"

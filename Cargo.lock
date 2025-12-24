@@ -989,7 +989,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "sprs"
+name = "sprsdata"
 version = "0.1.0"
 dependencies = [
  "bencher",
