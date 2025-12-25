@@ -121,7 +121,7 @@ dependencies = [
 
 [[package]]
 name = "beamsrch"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "bencher",
  "itertools",
@@ -168,7 +168,7 @@ dependencies = [
 
 [[package]]
 name = "bspa"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "beamsrch",
  "bencher",
@@ -990,7 +990,7 @@ dependencies = [
 
 [[package]]
 name = "sprsdata"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "bencher",
  "bitvec_simd",
