@@ -1,10 +1,7 @@
 use std::hint::black_box;
 
 use bencher::Bencher;
-use sprs::{
-    Key,
-    set::{SetMut, SparSet},
-};
+use sprsdata::{Key, SetMut, SparSet};
 
 const VEC: std::ops::Range<u16> = 0..Key::MAX;
 

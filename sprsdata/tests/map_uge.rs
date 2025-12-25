@@ -1,4 +1,4 @@
-use sprs::{Key, map::*};
+use sprsdata::*;
 
 #[cfg(feature = "rayon")]
 #[allow(unused_imports)]

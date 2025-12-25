@@ -1,10 +1,7 @@
 use std::hint::black_box;
 
 use bencher::Bencher;
-use sprs::{
-    Key,
-    set::{SetMut, SetRef, SparSet},
-};
+use sprsdata::{Key, SetMut, SetRef, SparSet};
 
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;

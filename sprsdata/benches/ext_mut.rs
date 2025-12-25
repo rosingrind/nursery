@@ -12,7 +12,7 @@ fn insert_one(b: &mut Bencher) {
 }
 
 fn insert_all(b: &mut Bencher) {
-    let tmp = black_box(0..sprs::Key::MAX as usize)
+    let tmp = black_box(0..sprsdata::Key::MAX as usize)
         .map(|x| (x.to_string().into_boxed_str(),))
         .collect::<Box<[_]>>();
 
@@ -32,7 +32,7 @@ fn delete_one(b: &mut Bencher) {
 }
 
 fn delete_all(b: &mut Bencher) {
-    let tmp = black_box(0..sprs::Key::MAX as usize)
+    let tmp = black_box(0..sprsdata::Key::MAX as usize)
         .map(|x| x.to_string())
         .collect::<Box<[_]>>();
 

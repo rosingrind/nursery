@@ -18,7 +18,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// use sprs::set::SparSet;
+    /// use sprsdata::SparSet;
     ///
     /// let a: SparSet<u16> = (1..=3).collect();
     /// let b: SparSet<u16> = (3..=5).collect();
@@ -47,7 +47,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// use sprs::set::SparSet;
+    /// use sprsdata::SparSet;
     ///
     /// let a: SparSet<u16> = (1..=3).collect();
     /// let b: SparSet<u16> = (2..=4).collect();
@@ -76,7 +76,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// use sprs::set::SparSet;
+    /// use sprsdata::SparSet;
     ///
     /// let a: SparSet<u16> = (1..=3).collect();
     /// let b: SparSet<u16> = (3..=5).collect();
@@ -105,7 +105,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// use sprs::set::SparSet;
+    /// use sprsdata::SparSet;
     ///
     /// let a: SparSet<u16> = (1..=3).collect();
     /// let b: SparSet<u16> = (3..=5).collect();

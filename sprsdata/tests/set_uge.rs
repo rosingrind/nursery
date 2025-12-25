@@ -1,4 +1,4 @@
-use sprs::{Key, set::*};
+use sprsdata::*;
 
 #[cfg(feature = "rayon")]
 #[allow(unused_imports)]
