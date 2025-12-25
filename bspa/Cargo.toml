@@ -1,11 +1,11 @@
 [package]
 name = "bspa"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["rosingrind"]
 edition = "2024"
 license = "MIT OR Apache-2.0"
 description = "Beam search packing algorithm"
-repository = "https://github.com/rosingrind/nursery/bspa"
+repository = "https://github.com/rosingrind/nursery/tree/main/bspa"
 keywords = ["packing", "algorithm"]
 categories = ["algorithms", "compression"]
 
